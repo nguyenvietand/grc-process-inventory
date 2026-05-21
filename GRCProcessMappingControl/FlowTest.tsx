@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import isEqual from "lodash/isEqual";
 import {
   ReactFlow,
   Background,
@@ -186,10 +187,10 @@ function buildFlowData(processData, rootData, riskData, controlData) {
 
   const controlNodes = [];
   const controlEdges = [];
-  // Mỗi risk-control là một node riêng biệt, kể cả khi ControlID giống nhau
+  // Each risk-control is a separate node, even if ControlID is the same
   if (nestedControls && nestedControls.length > 0) {
     nestedControls.forEach((control, index) => {
-      // Tạo id duy nhất cho mỗi risk-control
+      // Create a unique id for each risk-control
       const uniqueId = `${control.ControlID}__${control.riskId}`;
       controlNodes.push({
         id: uniqueId,
@@ -216,7 +217,7 @@ function buildFlowData(processData, rootData, riskData, controlData) {
     });
   }
 
-  // Không thêm node control từ controlData nữa (chỉ lấy từ nestedControls)
+  // Do not add control nodes from controlData anymore (only take from nestedControls)
 
   // Combine all edges
   const edges = [...riskEdges, ...controlEdges];
@@ -312,13 +313,14 @@ function FlowBoard({ processItems, controlItems, riskItems, onNodeAction }) {
     const parentNode = currentNodes?.find((n) => n.id === parentId);
     const isRootParent = parentNode && parentNode.type === "processNode";
 
+    // Always pass originalControlId if available
     setNodesRef.current((prev) => [
       ...prev,
       {
         id: newId,
         type: "controlNode",
         position: { x: isRootParent ? -450 : parentPosition.x + 400, y: parentPosition.y },
-        data: { ...controlItem, title: controlItem.name, _id: newId, onDeleteNode: handleDeleteNodeRef.current, onEditNode: handleEditNodeRef.current },
+        data: { ...controlItem, title: controlItem.name, _id: newId, originalControlId: controlItem.originalControlId || controlItem.ControlID || controlItem.id, onDeleteNode: handleDeleteNodeRef.current, onEditNode: handleEditNodeRef.current, onNodeAction },
       },
     ]);
 
@@ -348,7 +350,7 @@ function FlowBoard({ processItems, controlItems, riskItems, onNodeAction }) {
 
     kanbanRef.current?.removeItem(controlItem.id);
     positionNewNode(newId);
-  }, [positionNewNode]);
+  }, [positionNewNode, onNodeAction]);
 
   const handleAddRisk = useCallback((parentRootId, riskData) => {
     const newId = `risk-new-${++idCounter}`;
@@ -360,7 +362,7 @@ function FlowBoard({ processItems, controlItems, riskItems, onNodeAction }) {
           id: newId,
           type: "riskNode",
           position: { x: 400, y: riskCount * 250 },
-          data: { ...riskData, title: riskData.name, _id: newId, onDropControl: handleDropControl, onDeleteNode: handleDeleteNodeRef.current, onEditNode: handleEditNodeRef.current, onOpenPanel: openPanel, showError },
+          data: { ...riskData, title: riskData.name, _id: newId, originalRiskId: riskData.originalRiskId || riskData.RiskID || riskData.id, onDropControl: handleDropControl, onDeleteNode: handleDeleteNodeRef.current, onEditNode: handleEditNodeRef.current, onOpenPanel: openPanel, showError, onNodeAction },
         },
       ];
     });
@@ -375,7 +377,7 @@ function FlowBoard({ processItems, controlItems, riskItems, onNodeAction }) {
       },
     ]);
     positionNewNode(newId);
-  }, [handleDropControl]);
+  }, [handleDropControl, onNodeAction]);
 
   const handleAddControl = useCallback((parentRootId, controlData) => {
     const newId = `control-new-${++idCounter}`;
@@ -387,7 +389,7 @@ function FlowBoard({ processItems, controlItems, riskItems, onNodeAction }) {
           id: newId,
           type: "controlNode",
           position: { x: -450, y: controlCount * 250 },
-          data: { ...controlData, title: controlData.name, _id: newId, onDeleteNode: handleDeleteNodeRef.current, onEditNode: handleEditNodeRef.current },
+          data: { ...controlData, title: controlData.name, _id: newId, originalControlId: controlData.originalControlId || controlData.ControlID || controlData.id, onDeleteNode: handleDeleteNodeRef.current, onEditNode: handleEditNodeRef.current, onNodeAction },
         },
       ];
     });
@@ -402,7 +404,7 @@ function FlowBoard({ processItems, controlItems, riskItems, onNodeAction }) {
       },
     ]);
     positionNewNode(newId);
-  }, [positionNewNode]);
+  }, [positionNewNode, onNodeAction]);
 
   const handleDropRisk = useCallback((parentRootId, parentPosition, riskItem) => {
     const newId = `risk-drop-${++idCounter}`;
@@ -412,7 +414,7 @@ function FlowBoard({ processItems, controlItems, riskItems, onNodeAction }) {
         id: newId,
         type: "riskNode",
         position: { x: parentPosition.x + 400, y: parentPosition.y },
-        data: { ...riskItem, title: riskItem.name, _id: newId, onDropControl: handleDropControl, onDeleteNode: handleDeleteNodeRef.current, onEditNode: handleEditNodeRef.current, onOpenPanel: openPanel, showError },
+        data: { ...riskItem, title: riskItem.name, _id: newId, originalRiskId: riskItem.originalRiskId || riskItem.RiskID || riskItem.id, onDropControl: handleDropControl, onDeleteNode: handleDeleteNodeRef.current, onEditNode: handleEditNodeRef.current, onOpenPanel: openPanel, showError, onNodeAction },
       },
     ]);
     setEdgesRef.current((prev) => [
@@ -427,7 +429,7 @@ function FlowBoard({ processItems, controlItems, riskItems, onNodeAction }) {
     ]);
     kanbanRef.current?.removeItem(riskItem.id);
     positionNewNode(newId);
-  }, [handleDropControl, positionNewNode]);
+  }, [handleDropControl, positionNewNode, onNodeAction]);
 
   const initialData = useMemo(
     () => buildFlowData(processItems, mockProcessNodes, riskItems, controlItems),
@@ -478,37 +480,42 @@ function FlowBoard({ processItems, controlItems, riskItems, onNodeAction }) {
 
   handleEditNodeRef.current = handleEditNode;
 
-  const nodesWithCallbacks = useMemo(
-    () =>
-      initialData.nodes.map((node) => {
-        if (node.type === "processNode") {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              onAddRisk: handleAddRisk,
-              onAddControl: handleAddControl,
-              onDropRisk: handleDropRisk,
-              onDropControl: handleDropControl,
-              onOpenPanel: openPanel,
-              showError,
-            },
-          };
-        }
-        if (node.type === "riskNode") {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              onDropControl: handleDropControl,
-              onDeleteNode: handleDeleteNode,
-              onEditNode: handleEditNode,
-              onOpenPanel: openPanel,
-              showError,
-              onNodeAction,
-            },
-          };
-        }
+  // Only reset nodes/edges when input data actually changes
+  const prevDataRef = useRef({ processItems, controlItems, riskItems });
+
+  // Create nodesWithCallbacks only when input data actually changes
+  const nodesWithCallbacks = useMemo(() => {
+    return initialData.nodes.map((node) => {
+      if (node.type === "processNode") {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            onAddRisk: handleAddRisk,
+            onAddControl: handleAddControl,
+            onDropRisk: handleDropRisk,
+            onDropControl: handleDropControl,
+            onOpenPanel: openPanel,
+            showError,
+          },
+        };
+      }
+      if (node.type === "riskNode") {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            onDropControl: handleDropControl,
+            onDeleteNode: handleDeleteNode,
+            onEditNode: handleEditNode,
+            onOpenPanel: openPanel,
+            showError,
+            onNodeAction,
+            originalRiskId: node.data.originalRiskId || node.data.RiskID || node.data.id,
+          },
+        };
+      }
+      if (node.type === "controlNode") {
         return {
           ...node,
           data: {
@@ -516,22 +523,46 @@ function FlowBoard({ processItems, controlItems, riskItems, onNodeAction }) {
             onDeleteNode: handleDeleteNode,
             onEditNode: handleEditNode,
             onNodeAction,
+            originalControlId: node.data.originalControlId || node.data.ControlID || node.data.id,
           },
         };
-      }),
-    [initialData.nodes, handleAddRisk, handleAddControl, handleDropRisk, handleDropControl, handleDeleteNode, handleEditNode, showError, openPanel, onNodeAction],
-  );
+      }
+      return {
+        ...node,
+        data: {
+          ...node.data,
+          onDeleteNode: handleDeleteNode,
+          onEditNode: handleEditNode,
+          onNodeAction,
+        },
+      };
+    });
+    // eslint-disable-next-line
+  }, [initialData.nodes, handleAddRisk, handleAddControl, handleDropRisk, handleDropControl, handleDeleteNode, handleEditNode, showError, openPanel]);
+
 
   const [nodes, setNodes] = useState(() => layoutNodes(nodesWithCallbacks, initialData.edges));
   const [edges, setEdges] = useState(initialData.edges);
 
   useEffect(() => {
-    const nextNodes = layoutNodes(nodesWithCallbacks, initialData.edges);
-    setNodes(nextNodes);
-    setEdges(initialData.edges);
-    nodesRef.current = nextNodes;
-    edgesRef.current = initialData.edges;
-  }, [nodesWithCallbacks, initialData.edges]);
+    const prev = prevDataRef.current;
+    if (
+      !isEqual(prev.processItems, processItems) ||
+      !isEqual(prev.controlItems, controlItems) ||
+      !isEqual(prev.riskItems, riskItems)
+    ) {
+      // Data actually changed, reset nodes/edges
+      const nextNodes = layoutNodes(nodesWithCallbacks, initialData.edges);
+      setNodes(nextNodes);
+      setEdges(initialData.edges);
+      nodesRef.current = nextNodes;
+      edgesRef.current = initialData.edges;
+      prevDataRef.current = { processItems, controlItems, riskItems };
+    } else {
+      // If only callback changes, do nothing
+    }
+    // eslint-disable-next-line
+  }, [processItems, controlItems, riskItems, nodesWithCallbacks, initialData.edges]);
 
   setNodesRef.current = setNodes;
   setEdgesRef.current = (updater) => {

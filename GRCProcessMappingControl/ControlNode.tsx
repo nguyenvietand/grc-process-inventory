@@ -100,7 +100,7 @@ export default function ControlNode({ id, data }) {
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
               <Typography
                 variant="body2"
-                onClick={() => { if (data.onNodeAction) data.onNodeAction("control", data.originalControlId || id, "info"); }}
+                onClick={() => { if (data.onNodeAction) data.onNodeAction("control", data.originalControlId || data.ControlID || id, "info"); }}
                 sx={{
                   color: "#888",
                   fontWeight: 600,
@@ -114,7 +114,7 @@ export default function ControlNode({ id, data }) {
             </Box>
             <Button
               size="small"
-              onClick={() => { if (data.onNodeAction) data.onNodeAction("control", data.originalControlId || id, "edit"); }}
+              onClick={() => { if (data.onNodeAction) data.onNodeAction("control", data.originalControlId || data.ControlID || id, "edit"); }}
               sx={{ textTransform: "none", color: "#555", minWidth: "auto", p: "0 8px" }}>
               Edit
             </Button>

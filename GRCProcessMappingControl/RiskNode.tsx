@@ -158,7 +158,7 @@ export default function RiskNode({ id, data, positionAbsoluteX, positionAbsolute
               </Typography>
               <Typography
                 variant="body2"
-                onClick={() => { if (data.onNodeAction) data.onNodeAction("risk", id, "info"); }}
+                onClick={() => { if (data.onNodeAction) data.onNodeAction("risk", data.originalRiskId || data.RiskID || id, "info"); }}
                 sx={{
                   color: "#888",
                   fontWeight: 600,
@@ -172,7 +172,7 @@ export default function RiskNode({ id, data, positionAbsoluteX, positionAbsolute
             </Box>
             <Button
               size="small"
-              onClick={() => { if (data.onNodeAction) data.onNodeAction("risk", id, "edit"); }}
+              onClick={() => { if (data.onNodeAction) data.onNodeAction("risk", data.originalRiskId || data.RiskID || id, "edit"); }}
               sx={{ textTransform: "none", color: "#555", minWidth: "auto", p: "0 8px" }}>
               Edit
             </Button>

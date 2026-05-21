@@ -16,6 +16,9 @@
     <property name="ID" display-name-key="ID" description-key="ID_Desc" usage="output" of-type="SingleLine.Text" />
     <property name="Action" display-name-key="Action" description-key="Action_Desc" usage="output" of-type="SingleLine.Text" />
 
+    <!-- Thêm property này để xuất Table dưới dạng chuỗi JSON -->
+    <property name="ProcessDatasetOutput" display-name-key="ProcessDatasetOutput" description-key="Xuất dữ liệu ProcessDataset đã chỉnh sửa dưới dạng JSON" usage="output" of-type="Multiple" />
+
     
 
     <data-set name="ControlsDataset" display-name-key="ControlsDataset">
@@ -41,7 +44,7 @@
       <property-set name="HeraclesProcessActivityID" display-name-key="HeraclesProcessActivityID" of-type="SingleLine.Text" usage="bound" required="false" />
       <property-set name="Index" display-name-key="Index" of-type="SingleLine.Text" usage="bound" required="false" />
       <property-set name="Owner" display-name-key="Owner" of-type="SingleLine.Text" usage="bound" required="false" />
-      <property-set name="ProcessAcitivityName" display-name-key="ProcessAcitivityName" of-type="SingleLine.Text" usage="bound" required="true" />
+      <property-set name="ProcessActivityName" display-name-key="ProcessActivityName" of-type="SingleLine.Text" usage="bound" required="true" />
       <property-set name="ProcessStatus" display-name-key="ProcessStatus" of-type="SingleLine.Text" usage="bound" required="false" />
       <property-set name="DepartmentName" display-name-key="DepartmentName" of-type="SingleLine.Text" usage="bound" required="false" />
       <!-- Risk fields -->

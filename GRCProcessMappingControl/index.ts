@@ -41,6 +41,7 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
     }
 
     private render(): void {
+                // Always call notifyOutputChanged to update output property
                 const onNodeAction = (Type: string, ID: string, Action: string) => {
                     this.outputAction = { Type, ID, Action };
                     if (this.notifyOutputChanged) this.notifyOutputChanged();
