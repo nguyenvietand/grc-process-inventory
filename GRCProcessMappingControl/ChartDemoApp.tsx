@@ -8,12 +8,19 @@ import '@xyflow/react/dist/style.css';
 import theme from './theme';
 import { FlowBoard } from './FlowTest';
 
-export default function ChartDemoApp({ processItems, controlItems, riskItems, onNodeAction }) {
+export default function ChartDemoApp({ processItems, controlItems, riskItems, processDatasetFlat, onNodeAction, onProcessDatasetChange }) {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <ReactFlowProvider>
-        <FlowBoard processItems={processItems} controlItems={controlItems} riskItems={riskItems} onNodeAction={onNodeAction} />
+        <FlowBoard
+          processItems={processItems}
+          controlItems={controlItems}
+          riskItems={riskItems}
+          processDatasetFlat={processDatasetFlat}
+          onNodeAction={onNodeAction}
+          onProcessDatasetChange={onProcessDatasetChange}
+        />
       </ReactFlowProvider>
     </ThemeProvider>
   );

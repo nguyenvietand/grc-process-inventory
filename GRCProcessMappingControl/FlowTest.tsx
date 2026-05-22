@@ -62,6 +62,7 @@ function getRiskControlEdgeStyle(riskControlStatus) {
 }
 
 function buildFlowData(processData, rootData, riskData, controlData) {
+  // Pass all process fields into node data
   const rootSource = (processData && processData.length > 0)
     ? processData.map((item) => ({
         _id: item.id,
@@ -69,6 +70,9 @@ function buildFlowData(processData, rootData, riskData, controlData) {
         department: item.department,
         owner: item.owner,
         risks: item.risks || [],
+        HeraclesProcessActivityID: item.HeraclesProcessActivityID || "",
+        Index: item.Index || "",
+        ProcessStatus: item.ProcessStatus || "",
       }))
     : rootData;
 
@@ -206,6 +210,7 @@ function buildFlowData(processData, rootData, riskData, controlData) {
           status: control.ControlStatus,
           parentId: control.riskId,
           originalControlId: control.ControlID,
+          RiskControlStatus: control.RiskControlStatus || "",
         },
       });
       controlEdges.push({
@@ -227,7 +232,7 @@ function buildFlowData(processData, rootData, riskData, controlData) {
 
 let idCounter = 100;
 
-function FlowBoard({ processItems, controlItems, riskItems, onNodeAction }) {
+function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, onNodeAction, onProcessDatasetChange }) {
   const [panelOpen, setPanelOpen] = useState(false);
   const [panelFilter, setPanelFilter] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
@@ -543,6 +548,130 @@ function FlowBoard({ processItems, controlItems, riskItems, onNodeAction }) {
 
   const [nodes, setNodes] = useState(() => layoutNodes(nodesWithCallbacks, initialData.edges));
   const [edges, setEdges] = useState(initialData.edges);
+
+  // Helper: flatten process, risk, control into flat array (like ProcessDataset)
+  function flattenProcessDatasetFromGraph(nodes, edges) {
+    const nodeMap = Object.fromEntries(nodes.map(n => [n.id, n]));
+    const processNodes = nodes.filter(n => n.type === 'processNode');
+    const rows = [];
+
+    // Build a set of (RiskID, ControlID) pairs from the original input ProcessDataset (flat, from processDatasetFlat)
+    const inputRows = Array.isArray(processDatasetFlat) ? processDatasetFlat : [];
+    const inputPairs = new Set(
+      inputRows.map(row => `${row.RiskID || ''}|||${row.ControlID || ''}`)
+    );
+
+    processNodes.forEach(proc => {
+      const riskEdges = edges.filter(e => e.source === proc.id && nodeMap[e.target]?.type === 'riskNode');
+      // Extract all process fields, fallback to empty string if missing
+      const processFields = {
+        CoreProcessID: proc.id,
+        HeraclesProcessActivityID: proc.data.HeraclesProcessActivityID || "",
+        Index: proc.data.Index || "",
+        Owner: proc.data.owner || "",
+        ProcessActivityName: proc.data.title || proc.data.ProcessActivityName || "",
+        ProcessStatus: proc.data.ProcessStatus || "",
+        DepartmentName: proc.data.department || "",
+      };
+      if (riskEdges.length === 0) {
+        // Process without risk
+        rows.push({
+          ...processFields,
+          // Risk fields empty
+          RiskID: "",
+          ProcessRiskStatus: "",
+          RiskShortName: "",
+          RiskDescription: "",
+          RiskLikelihood: "",
+          RiskImpact: "",
+          RiskStatus: "",
+          // Control fields empty
+          ControlID: "",
+          RiskControlStatus: "",
+          ControlName: "",
+          ControlDesc: "",
+          ControlCategory: "",
+          ControlOwner: "",
+          ControlStatus: "",
+          // Marker fields
+          ProcessRiskMarker: "",
+          RiskControlMarker: "",
+        });
+      } else {
+        riskEdges.forEach(e => {
+          const riskNode = nodeMap[e.target];
+          const riskId = riskNode.data.RiskID || riskNode.data.originalRiskId || riskNode.id;
+          const controlEdges = edges.filter(ed => ed.source === riskNode.id && nodeMap[ed.target]?.type === 'controlNode');
+          if (controlEdges.length === 0) {
+            // Risk without control
+            const pairKey = `${riskId || ''}|||`;
+            const isNew = !inputPairs.has(pairKey);
+            rows.push({
+              ...processFields,
+              RiskID: riskId,
+              ProcessRiskStatus: riskNode.data.processRiskStatus || riskNode.data.status || "",
+              RiskShortName: riskNode.data.name || riskNode.data.title || "",
+              RiskDescription: riskNode.data.description || "",
+              RiskLikelihood: riskNode.data.likelihood || "",
+              RiskImpact: riskNode.data.impact || "",
+              RiskStatus: riskNode.data.status || "",
+              // Control fields empty
+              ControlID: "",
+              RiskControlStatus: "",
+              ControlName: "",
+              ControlDesc: "",
+              ControlCategory: "",
+              ControlOwner: "",
+              ControlStatus: "",
+              // Marker fields
+              ProcessRiskMarker: isNew ? "add" : "",
+              RiskControlMarker: "",
+            });
+          } else {
+            // Determine if the risk itself is new (for ProcessRiskMarker)
+            const riskPairKey = `${riskId || ''}|||`;
+            const isNewRisk = !inputPairs.has(riskPairKey);
+            controlEdges.forEach(ce => {
+              const ctrl = nodeMap[ce.target];
+              const controlId = ctrl.data.ControlID || ctrl.data.originalControlId || ctrl.id || "";
+              const pairKey = `${riskId || ''}|||${controlId || ''}`;
+              const isNewControl = !inputPairs.has(pairKey);
+              rows.push({
+                ...processFields,
+                RiskID: riskId,
+                ProcessRiskStatus: riskNode.data.processRiskStatus || riskNode.data.status || "",
+                RiskShortName: riskNode.data.name || riskNode.data.title || "",
+                RiskDescription: riskNode.data.description || "",
+                RiskLikelihood: riskNode.data.likelihood || "",
+                RiskImpact: riskNode.data.impact || "",
+                RiskStatus: riskNode.data.status || "",
+                ControlID: controlId,
+                RiskControlStatus: ctrl.data.RiskControlStatus || "",
+                ControlName: ctrl.data.name || ctrl.data.title || "",
+                ControlDesc: ctrl.data.description || "",
+                ControlCategory: ctrl.data.category || "",
+                ControlOwner: ctrl.data.owner || "",
+                ControlStatus: ctrl.data.status || "",
+                // Marker fields
+                ProcessRiskMarker: isNewRisk && isNewControl ? "add" : "",
+                RiskControlMarker: isNewControl ? "add" : "",
+              });
+            });
+          }
+        });
+      }
+    });
+    return rows;
+  }
+
+  // Call onProcessDatasetChange whenever nodes or edges change (init and after edits)
+  useEffect(() => {
+    if (typeof onProcessDatasetChange === 'function') {
+      const flatRows = flattenProcessDatasetFromGraph(nodes, edges);
+      onProcessDatasetChange(flatRows);
+    }
+    // eslint-disable-next-line
+  }, [nodes, edges]);
 
   useEffect(() => {
     const prev = prevDataRef.current;

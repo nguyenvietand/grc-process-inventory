@@ -16,7 +16,7 @@
     <property name="ID" display-name-key="ID" description-key="ID_Desc" usage="output" of-type="SingleLine.Text" />
     <property name="Action" display-name-key="Action" description-key="Action_Desc" usage="output" of-type="SingleLine.Text" />
 
-    <!-- Thêm property này để xuất Table dưới dạng chuỗi JSON -->
+    <!-- Add this property to export the Table as a JSON string -->
     <property name="ProcessDatasetOutput" display-name-key="ProcessDatasetOutput" description-key="Xuất dữ liệu ProcessDataset đã chỉnh sửa dưới dạng JSON" usage="output" of-type="Multiple" />
 
     

@@ -7,6 +7,7 @@ import ChartDemoApp from './ChartDemoApp';
 
 export class GRCProcessMappingControl implements ComponentFramework.StandardControl<IInputs, IOutputs> {
     private outputAction: IOutputs = {};
+    private lastProcessDatasetOutput: string | undefined;
     private notifyOutputChanged: (() => void) | null = null;
     private root: Root | null = null;
     private context: ComponentFramework.Context<IInputs>;
@@ -41,11 +42,22 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
     }
 
     private render(): void {
-                // Always call notifyOutputChanged to update output property
-                const onNodeAction = (Type: string, ID: string, Action: string) => {
-                    this.outputAction = { Type, ID, Action };
-                    if (this.notifyOutputChanged) this.notifyOutputChanged();
-                };
+        // Always call notifyOutputChanged to update output property
+        const onNodeAction = (Type: string, ID: string, Action: string) => {
+            this.outputAction = { ...this.outputAction, Type, ID, Action };
+            if (this.notifyOutputChanged) this.notifyOutputChanged();
+        };
+
+        // Callback to update ProcessDatasetOutput when flow changes
+        const onProcessDatasetChange = (newProcessItems: Record<string, string>[]) => {
+            const json = JSON.stringify(newProcessItems ?? []);
+            if (this.lastProcessDatasetOutput !== json) {
+                this.lastProcessDatasetOutput = json;
+                this.outputAction = { ...this.outputAction, ProcessDatasetOutput: json };
+                if (this.notifyOutputChanged) this.notifyOutputChanged();
+            }
+        };
+
         if (!this.root) return;
 
         const allocatedWidth = Number(this.context.mode.allocatedWidth);
@@ -67,6 +79,19 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
             const value = column ? record.getValue(column.name) : record.getValue(propertyName);
             return (value as string) || '';
         };
+
+        // Build flat ProcessDataset (array of rows) for marker logic
+        let processDatasetFlat: Record<string, string>[] = [];
+        if (processDataset && !processDataset.loading && processDataset.sortedRecordIds.length > 0) {
+            processDatasetFlat = processDataset.sortedRecordIds.map((id) => {
+                const record = processDataset.records[id];
+                const row: Record<string, string> = {};
+                processDataset.columns.forEach((col) => {
+                    row[col.name] = getDatasetValue(processDataset, record, col.name);
+                });
+                return row;
+            });
+        }
 
         let controlItems:
             | { id: string; name: string; description: string; category: string; owner: string; status: string; parentId: string }[]
@@ -142,6 +167,9 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
                 title: string;
                 department: string;
                 owner: string;
+                HeraclesProcessActivityID: string;
+                Index: string;
+                ProcessStatus: string;
                 risks: Record<string, {
                     RiskID: string;
                     ProcessRiskStatus: string;
@@ -160,9 +188,12 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
                 if (!processMap[processId]) {
                     processMap[processId] = {
                         id: processId,
-                        title: getDatasetValue(processDataset, record, 'ProcessAcitivityName'),
+                        title: getDatasetValue(processDataset, record, 'ProcessActivityName'),
                         department: getDatasetValue(processDataset, record, 'DepartmentName'),
                         owner: getDatasetValue(processDataset, record, 'Owner'),
+                        HeraclesProcessActivityID: getDatasetValue(processDataset, record, 'HeraclesProcessActivityID'),
+                        Index: getDatasetValue(processDataset, record, 'Index'),
+                        ProcessStatus: getDatasetValue(processDataset, record, 'ProcessStatus'),
                         risks: {},
                     };
                 }
@@ -208,6 +239,14 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
             }));
         }
 
+        // Set initial ProcessDatasetOutput on first render/init
+        if (processItems && !this.lastProcessDatasetOutput) {
+            const json = JSON.stringify(processItems);
+            this.lastProcessDatasetOutput = json;
+            this.outputAction = { ...this.outputAction, ProcessDatasetOutput: json };
+            if (this.notifyOutputChanged) this.notifyOutputChanged();
+        }
+
         this.container.style.width = '100%';
         this.container.style.height = '100%';
         this.container.style.position = 'relative';
@@ -226,7 +265,7 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
                         left: 0,
                     },
                 },
-                React.createElement(ChartDemoApp, { processItems, controlItems, riskItems, onNodeAction }),
+                React.createElement(ChartDemoApp, { processItems, controlItems, riskItems, processDatasetFlat, onNodeAction, onProcessDatasetChange }),
             ),
         );
     }
