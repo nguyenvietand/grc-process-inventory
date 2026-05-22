@@ -1,0 +1,157 @@
+RiskID,RiskName,RiskDesc,ProcessID
+risk-1,Data Breach,Unauthorized access to sensitive customer data,proc-1
+risk-1,Data Breach,Unauthorized access to sensitive customer data,proc-6
+risk-1,Data Breach,Unauthorized access to sensitive customer data,proc-7
+risk-1,Data Breach,Unauthorized access to sensitive customer data,proc-9
+risk-1,Data Breach,Unauthorized access to sensitive customer data,proc-15
+risk-1,Data Breach,Unauthorized access to sensitive customer data,proc-20
+risk-2,System Downtime,Unplanned outage affecting critical services,proc-1
+risk-2,System Downtime,Unplanned outage affecting critical services,proc-8
+risk-2,System Downtime,Unplanned outage affecting critical services,proc-14
+risk-2,System Downtime,Unplanned outage affecting critical services,proc-15
+risk-2,System Downtime,Unplanned outage affecting critical services,proc-16
+risk-2,System Downtime,Unplanned outage affecting critical services,proc-18
+risk-3,Phishing Attack,Credential theft through targeted phishing,proc-1
+risk-3,Phishing Attack,Credential theft through targeted phishing,proc-6
+risk-3,Phishing Attack,Credential theft through targeted phishing,proc-7
+risk-3,Phishing Attack,Credential theft through targeted phishing,proc-20
+risk-4,Fraud Risk,Financial fraud or misappropriation of funds,proc-2
+risk-4,Fraud Risk,Financial fraud or misappropriation of funds,proc-12
+risk-4,Fraud Risk,Financial fraud or misappropriation of funds,proc-16
+risk-4,Fraud Risk,Financial fraud or misappropriation of funds,proc-17
+risk-5,Budget Overrun,Project costs exceeding the approved budget,proc-2
+risk-5,Budget Overrun,Project costs exceeding the approved budget,proc-9
+risk-5,Budget Overrun,Project costs exceeding the approved budget,proc-10
+risk-5,Budget Overrun,Project costs exceeding the approved budget,proc-13
+risk-5,Budget Overrun,Project costs exceeding the approved budget,proc-15
+risk-5,Budget Overrun,Project costs exceeding the approved budget,proc-17
+risk-6,Talent Shortage,Inability to hire or retain key personnel,proc-3
+risk-6,Talent Shortage,Inability to hire or retain key personnel,proc-8
+risk-6,Talent Shortage,Inability to hire or retain key personnel,proc-10
+risk-6,Talent Shortage,Inability to hire or retain key personnel,proc-19
+risk-7,Regulatory Non-compliance,Failure to meet regulatory requirements,proc-4
+risk-7,Regulatory Non-compliance,Failure to meet regulatory requirements,proc-12
+risk-7,Regulatory Non-compliance,Failure to meet regulatory requirements,proc-18
+risk-8,Contract Risk,Contractual obligations not met by parties,proc-4
+risk-8,Contract Risk,Contractual obligations not met by parties,proc-11
+risk-8,Contract Risk,Contractual obligations not met by parties,proc-12
+risk-8,Contract Risk,Contractual obligations not met by parties,proc-17
+risk-9,Litigation Risk,Legal action or regulatory penalties,proc-4
+risk-9,Litigation Risk,Legal action or regulatory penalties,proc-11
+risk-9,Litigation Risk,Legal action or regulatory penalties,proc-17
+risk-10,Supply Chain Disruption,Disruption due to key supplier failure,proc-5
+risk-10,Supply Chain Disruption,Disruption due to key supplier failure,proc-11
+risk-10,Supply Chain Disruption,Disruption due to key supplier failure,proc-14
+risk-10,Supply Chain Disruption,Disruption due to key supplier failure,proc-17
+risk-11,Operational Error,Human error in critical operational processes,proc-3
+risk-11,Operational Error,Human error in critical operational processes,proc-5
+risk-11,Operational Error,Human error in critical operational processes,proc-8
+risk-11,Operational Error,Human error in critical operational processes,proc-9
+risk-11,Operational Error,Human error in critical operational processes,proc-12
+risk-11,Operational Error,Human error in critical operational processes,proc-13
+risk-11,Operational Error,Human error in critical operational processes,proc-15
+risk-11,Operational Error,Human error in critical operational processes,proc-17
+risk-11,Operational Error,Human error in critical operational processes,proc-18
+risk-11,Operational Error,Human error in critical operational processes,proc-19
+risk-12,Cyber Attack,Coordinated cyber attack on infrastructure,proc-1
+risk-12,Cyber Attack,Coordinated cyber attack on infrastructure,proc-6
+risk-12,Cyber Attack,Coordinated cyber attack on infrastructure,proc-9
+risk-12,Cyber Attack,Coordinated cyber attack on infrastructure,proc-15
+risk-12,Cyber Attack,Coordinated cyber attack on infrastructure,proc-20
+risk-13,Data Loss,Accidental or malicious permanent data loss,proc-3
+risk-13,Data Loss,Accidental or malicious permanent data loss,proc-6
+risk-13,Data Loss,Accidental or malicious permanent data loss,proc-7
+risk-13,Data Loss,Accidental or malicious permanent data loss,proc-14
+risk-13,Data Loss,Accidental or malicious permanent data loss,proc-19
+risk-13,Data Loss,Accidental or malicious permanent data loss,proc-20
+risk-14,Privacy Violation,Breach of personal data privacy regulations,proc-3
+risk-14,Privacy Violation,Breach of personal data privacy regulations,proc-7
+risk-14,Privacy Violation,Breach of personal data privacy regulations,proc-18
+risk-14,Privacy Violation,Breach of personal data privacy regulations,proc-19
+risk-15,Vendor Lock-in,Over-reliance on a single vendor or platform,proc-5
+risk-15,Vendor Lock-in,Over-reliance on a single vendor or platform,proc-11
+risk-15,Vendor Lock-in,Over-reliance on a single vendor or platform,proc-17
+risk-16,Service Disruption,Disruption to key customer-facing services,proc-8
+risk-16,Service Disruption,Disruption to key customer-facing services,proc-14
+risk-16,Service Disruption,Disruption to key customer-facing services,proc-20
+risk-17,Reputational Damage,Negative public or media perception,proc-4
+risk-17,Reputational Damage,Negative public or media perception,proc-8
+risk-17,Reputational Damage,Negative public or media perception,proc-10
+risk-17,Reputational Damage,Negative public or media perception,proc-11
+risk-17,Reputational Damage,Negative public or media perception,proc-13
+risk-17,Reputational Damage,Negative public or media perception,proc-18
+risk-18,Market Risk,Exposure to market price fluctuations,proc-2
+risk-18,Market Risk,Exposure to market price fluctuations,proc-9
+risk-18,Market Risk,Exposure to market price fluctuations,proc-10
+risk-18,Market Risk,Exposure to market price fluctuations,proc-12
+risk-18,Market Risk,Exposure to market price fluctuations,proc-16
+risk-19,Credit Risk,Non-payment or default by counterparties,proc-2
+risk-19,Credit Risk,Non-payment or default by counterparties,proc-10
+risk-19,Credit Risk,Non-payment or default by counterparties,proc-13
+risk-19,Credit Risk,Non-payment or default by counterparties,proc-16
+risk-19,Credit Risk,Non-payment or default by counterparties,proc-19
+risk-20,Strategic Misalignment,Misalignment with overall business objectives,proc-3
+risk-20,Strategic Misalignment,Misalignment with overall business objectives,proc-7
+risk-20,Strategic Misalignment,Misalignment with overall business objectives,proc-9
+risk-20,Strategic Misalignment,Misalignment with overall business objectives,proc-10
+risk-20,Strategic Misalignment,Misalignment with overall business objectives,proc-12
+risk-20,Strategic Misalignment,Misalignment with overall business objectives,proc-13
+risk-20,Strategic Misalignment,Misalignment with overall business objectives,proc-15
+risk-20,Strategic Misalignment,Misalignment with overall business objectives,proc-16
+risk-20,Strategic Misalignment,Misalignment with overall business objectives,proc-17
+risk-20,Strategic Misalignment,Misalignment with overall business objectives,proc-18
+risk-21,Access Control Gap,Insufficient access control mechanisms,proc-1
+risk-21,Access Control Gap,Insufficient access control mechanisms,proc-6
+risk-21,Access Control Gap,Insufficient access control mechanisms,proc-7
+risk-21,Access Control Gap,Insufficient access control mechanisms,proc-10
+risk-21,Access Control Gap,Insufficient access control mechanisms,proc-15
+risk-21,Access Control Gap,Insufficient access control mechanisms,proc-20
+risk-22,Third Party Risk,Risks arising from third-party service providers,proc-5
+risk-22,Third Party Risk,Risks arising from third-party service providers,proc-11
+risk-22,Third Party Risk,Risks arising from third-party service providers,proc-13
+risk-22,Third Party Risk,Risks arising from third-party service providers,proc-17
+risk-23,Network Failure,Network outage due to hardware or software failure,proc-6
+risk-23,Network Failure,Network outage due to hardware or software failure,proc-14
+risk-23,Network Failure,Network outage due to hardware or software failure,proc-19
+risk-23,Network Failure,Network outage due to hardware or software failure,proc-20
+risk-24,Audit Failure,Failure during internal or external audit,proc-4
+risk-24,Audit Failure,Failure during internal or external audit,proc-12
+risk-24,Audit Failure,Failure during internal or external audit,proc-18
+risk-25,Business Interruption,Interruption to core business operations,proc-5
+risk-25,Business Interruption,Interruption to core business operations,proc-8
+risk-25,Business Interruption,Interruption to core business operations,proc-11
+risk-25,Business Interruption,Interruption to core business operations,proc-13
+risk-25,Business Interruption,Interruption to core business operations,proc-14
+risk-26,Tech Obsolescence,Legacy systems unable to meet business needs,proc-9
+risk-26,Tech Obsolescence,Legacy systems unable to meet business needs,proc-13
+risk-26,Tech Obsolescence,Legacy systems unable to meet business needs,proc-14
+risk-26,Tech Obsolescence,Legacy systems unable to meet business needs,proc-15
+risk-26,Tech Obsolescence,Legacy systems unable to meet business needs,proc-16
+risk-26,Tech Obsolescence,Legacy systems unable to meet business needs,proc-19
+risk-26,Tech Obsolescence,Legacy systems unable to meet business needs,proc-20
+risk-27,Process Inefficiency,Inefficient processes increasing operational cost,proc-2
+risk-27,Process Inefficiency,Inefficient processes increasing operational cost,proc-3
+risk-27,Process Inefficiency,Inefficient processes increasing operational cost,proc-5
+risk-27,Process Inefficiency,Inefficient processes increasing operational cost,proc-8
+risk-27,Process Inefficiency,Inefficient processes increasing operational cost,proc-10
+risk-27,Process Inefficiency,Inefficient processes increasing operational cost,proc-11
+risk-27,Process Inefficiency,Inefficient processes increasing operational cost,proc-12
+risk-27,Process Inefficiency,Inefficient processes increasing operational cost,proc-13
+risk-27,Process Inefficiency,Inefficient processes increasing operational cost,proc-15
+risk-27,Process Inefficiency,Inefficient processes increasing operational cost,proc-16
+risk-28,Data Quality Issue,Poor data quality impacting business decisions,proc-2
+risk-28,Data Quality Issue,Poor data quality impacting business decisions,proc-7
+risk-28,Data Quality Issue,Poor data quality impacting business decisions,proc-8
+risk-28,Data Quality Issue,Poor data quality impacting business decisions,proc-10
+risk-28,Data Quality Issue,Poor data quality impacting business decisions,proc-12
+risk-28,Data Quality Issue,Poor data quality impacting business decisions,proc-14
+risk-28,Data Quality Issue,Poor data quality impacting business decisions,proc-16
+risk-28,Data Quality Issue,Poor data quality impacting business decisions,proc-18
+risk-28,Data Quality Issue,Poor data quality impacting business decisions,proc-19
+risk-29,Liquidity Risk,Insufficient liquidity to meet obligations,proc-2
+risk-29,Liquidity Risk,Insufficient liquidity to meet obligations,proc-13
+risk-29,Liquidity Risk,Insufficient liquidity to meet obligations,proc-16
+risk-30,Market Exposure,Broad market exposure across asset classes,proc-2
+risk-30,Market Exposure,Broad market exposure across asset classes,proc-9
+risk-30,Market Exposure,Broad market exposure across asset classes,proc-10
+risk-30,Market Exposure,Broad market exposure across asset classes,proc-15

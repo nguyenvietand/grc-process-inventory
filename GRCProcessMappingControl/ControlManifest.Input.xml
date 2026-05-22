@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+  <control
+    namespace="GRC"
+    constructor="GRCProcessMappingControl"
+    version="0.0.1"
+    display-name-key="GRCProcessMappingControl"
+    description-key="GRCProcessMappingControl_Desc"
+    control-type="standard"
+  >
+
+    <external-service-usage enabled="false"></external-service-usage>
+
+    <!-- Output properties for node actions -->
+    <property name="Type" display-name-key="Type" description-key="Type_Desc" usage="output" of-type="SingleLine.Text" />
+    <property name="ID" display-name-key="ID" description-key="ID_Desc" usage="output" of-type="SingleLine.Text" />
+    <property name="Action" display-name-key="Action" description-key="Action_Desc" usage="output" of-type="SingleLine.Text" />
+
+    <!-- Add this property to export the Table as a JSON string -->
+    <property name="ProcessDatasetOutput" display-name-key="ProcessDatasetOutput" description-key="Xuất dữ liệu ProcessDataset đã chỉnh sửa dưới dạng JSON" usage="output" of-type="Multiple" />
+
+    
+
+    <data-set name="ControlsDataset" display-name-key="ControlsDataset">
+      <property-set name="ControlID" display-name-key="ControlID" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="ControlName" display-name-key="ControlName" of-type="SingleLine.Text" usage="bound" required="true" />
+      <property-set name="ControlDesc" display-name-key="ControlDesc" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="ControlCategory" display-name-key="ControlCategory" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="ControlOwner" display-name-key="ControlOwner" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="ControlStatus" display-name-key="ControlStatus" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="RiskID" display-name-key="RiskID" of-type="SingleLine.Text" usage="bound" required="false" />
+    </data-set>
+
+    <data-set name="RisksDataset" display-name-key="RisksDataset">
+      <property-set name="RiskID" display-name-key="RiskID" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="RiskName" display-name-key="RiskName" of-type="SingleLine.Text" usage="bound" required="true" />
+      <property-set name="RiskDesc" display-name-key="RiskDesc" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="ProcessID" display-name-key="ProcessID" of-type="SingleLine.Text" usage="bound" required="false" />
+    </data-set>
+
+    <data-set name="ProcessDataset" display-name-key="ProcessDataset">
+      <!-- Process fields -->
+      <property-set name="CoreProcessID" display-name-key="CoreProcessID" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="HeraclesProcessActivityID" display-name-key="HeraclesProcessActivityID" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="Index" display-name-key="Index" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="Owner" display-name-key="Owner" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="ProcessActivityName" display-name-key="ProcessActivityName" of-type="SingleLine.Text" usage="bound" required="true" />
+      <property-set name="ProcessStatus" display-name-key="ProcessStatus" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="DepartmentName" display-name-key="DepartmentName" of-type="SingleLine.Text" usage="bound" required="false" />
+      <!-- Risk fields -->
+      <property-set name="RiskID" display-name-key="RiskID" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="ProcessRiskStatus" display-name-key="ProcessRiskStatus" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="RiskShortName" display-name-key="RiskShortName" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="RiskDescription" display-name-key="RiskDescription" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="RiskLikelihood" display-name-key="RiskLikelihood" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="RiskImpact" display-name-key="RiskImpact" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="RiskStatus" display-name-key="RiskStatus" of-type="SingleLine.Text" usage="bound" required="false" />
+      <!-- Control fields -->
+      <property-set name="ControlID" display-name-key="ControlID" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="RiskControlStatus" display-name-key="RiskControlStatus" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="ControlName" display-name-key="ControlName" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="ControlDesc" display-name-key="ControlDesc" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="ControlCategory" display-name-key="ControlCategory" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="ControlOwner" display-name-key="ControlOwner" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="ControlStatus" display-name-key="ControlStatus" of-type="SingleLine.Text" usage="bound" required="false" />
+    </data-set>
+
+    <resources>
+      <code path="index.ts" order="1" />
+      <css path="css/GRCProcessMappingControl.css" order="1" />
+    </resources>
+  </control>
+</manifest>

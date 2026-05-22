@@ -1,0 +1,6 @@
+ControlID,ControlName,ControlDesc,ControlCategory,ControlOwner,ControlStatus,RiskID
+ctrl-1,MFA Enforcement,Multi-factor authentication for all users,Security,IAM Team,Active,
+ctrl-2,Monthly Audit,Monthly compliance audit cycle,Compliance,Audit Team,Active,
+ctrl-3,Firewall Policy,Network firewall rules and enforcement,Security,Network Team,Active,
+ctrl-4,Data Encryption,Encryption of sensitive data at rest and in transit,Security,SecOps,Active,
+ctrl-5,Vendor Assessment,Periodic vendor risk assessments,Procurement,Risk Team,Review,
