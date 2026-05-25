@@ -14,8 +14,6 @@ export default function ProcessNode({ data, positionAbsoluteX, positionAbsoluteY
   const [isDragOver, setIsDragOver] = React.useState(false);
   const processRisks = Array.isArray(data.risks) ? data.risks : [];
 
-  console.log("Rendering ProcessNode with data:", data);
-
   const handleNodeDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();

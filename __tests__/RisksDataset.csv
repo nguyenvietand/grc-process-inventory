@@ -1,6 +1,6 @@
 RiskID,RiskName,RiskDesc,ProcessID
-risk-1,Data Leak,Potential data leak via third-party API,
+risk-1,Data Leak,Potential data leak via third-party API,core-process-1
 risk-2,Vendor Lock-in,Over-reliance on single cloud provider,
-risk-3,System Downtime,Unplanned outage affecting critical services,
+risk-3,System Downtime,Unplanned outage affecting critical services,core-process-1
 risk-4,Phishing Campaign,Credential theft through targeted phishing,
 risk-5,Legacy Protocol Exposure,Deprecated protocol still enabled in production,

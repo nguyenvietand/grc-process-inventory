@@ -39,7 +39,6 @@ function getProcessRiskEdgeStyle(processRiskStatus) {
   }
 
   return {
-    // Using a valid 6-digit equivalent for the requested active color.
     stroke: "#00cc95",
     strokeWidth: 1.5,
   };
@@ -62,7 +61,6 @@ function getRiskControlEdgeStyle(riskControlStatus) {
 }
 
 function buildFlowData(processData, rootData, riskData, controlData) {
-  // Pass all process fields into node data
   const rootSource = (processData && processData.length > 0)
     ? processData.map((item) => ({
         _id: item.id,
@@ -83,19 +81,15 @@ function buildFlowData(processData, rootData, riskData, controlData) {
     data: { ...item },
   }));
 
-  console.log("Process nodes built:", rootNodes);
-
   const riskNodes = [];
   const riskEdges = [];
-  const riskMapping = {}; // { riskId -> processId[] } for tracking relationships
-  const nestedControls = []; // Collect controls from nested risk data
+  const riskMapping = {};
+  const nestedControls = [];
 
-  // Extract nested risks from processData
   if (processData && processData.length > 0) {
     processData.forEach((process) => {
       if (process.risks && process.risks.length > 0) {
         process.risks.forEach((nestedRisk) => {
-          // Track which processes this risk belongs to
           if (!riskMapping[nestedRisk.RiskID]) {
             riskMapping[nestedRisk.RiskID] = [];
           }
@@ -108,7 +102,6 @@ function buildFlowData(processData, rootData, riskData, controlData) {
       }
     });
 
-    // Build risk nodes from nested risks
     const uniqueRiskIds = Object.keys(riskMapping);
     
     riskNodes.push(
@@ -117,7 +110,6 @@ function buildFlowData(processData, rootData, riskData, controlData) {
         const mappedRisk = riskMapping[riskId][0];
         const riskObject = mappedRisk?.riskObject || {};
         
-        // Collect controls from nested risk data
         const nestedRiskFromProcess = processData?.[0]?.risks?.find(r => r.RiskID === riskId);
         const controls = nestedRiskFromProcess?.Controls || [];
         
@@ -141,7 +133,6 @@ function buildFlowData(processData, rootData, riskData, controlData) {
       })
     );
     
-    // Collect all controls from risks for node creation
     riskNodes.forEach((riskNode) => {
       if (riskNode.data.controls && riskNode.data.controls.length > 0) {
         riskNode.data.controls.forEach((control) => {
@@ -153,7 +144,6 @@ function buildFlowData(processData, rootData, riskData, controlData) {
       }
     });
 
-    // Build edges from processes to nested risks
     Object.entries(riskMapping).forEach(([riskId, processes]) => {
       processes.forEach((proc) => {
         riskEdges.push({
@@ -166,7 +156,6 @@ function buildFlowData(processData, rootData, riskData, controlData) {
       });
     });
   } else if (riskData && riskData.length > 0) {
-    // Fallback to riskData if no processData
     riskNodes.push(
       ...riskData.map((item, index) => ({
         id: item._id,
@@ -191,10 +180,8 @@ function buildFlowData(processData, rootData, riskData, controlData) {
 
   const controlNodes = [];
   const controlEdges = [];
-  // Each risk-control is a separate node, even if ControlID is the same
   if (nestedControls && nestedControls.length > 0) {
     nestedControls.forEach((control, index) => {
-      // Create a unique id for each risk-control
       const uniqueId = `${control.ControlID}__${control.riskId}`;
       controlNodes.push({
         id: uniqueId,
@@ -222,11 +209,7 @@ function buildFlowData(processData, rootData, riskData, controlData) {
     });
   }
 
-  // Do not add control nodes from controlData anymore (only take from nestedControls)
-
-  // Combine all edges
   const edges = [...riskEdges, ...controlEdges];
-
   return { nodes: [...rootNodes, ...riskNodes, ...controlNodes], edges };
 }
 
@@ -236,6 +219,9 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
   const [panelOpen, setPanelOpen] = useState(false);
   const [panelFilter, setPanelFilter] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
+  
+  const showError = useCallback((msg) => setErrorMsg(msg), []);
+
   const { screenToFlowPosition, fitView } = useReactFlow();
   const setNodesRef = useRef(null);
   const setEdgesRef = useRef(null);
@@ -244,6 +230,8 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
   const kanbanRef = useRef(null);
   const handleDeleteNodeRef = useRef(null);
   const handleEditNodeRef = useRef(null);
+
+  const ROW_GAP = 280;
 
   const positionNewNode = useCallback((newNodeId) => {
     setTimeout(() => {
@@ -310,54 +298,130 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
     }, 0);
   }, []);
 
-  const ROW_GAP = 280;
-
   const handleDropControl = useCallback((parentId, parentPosition, controlItem) => {
-    const newId = `control-drop-${++idCounter}`;
-    const currentNodes = nodesRef.current;
-    const parentNode = currentNodes?.find((n) => n.id === parentId);
+    const incomingControlId = controlItem.originalControlId || controlItem.ControlID || controlItem.id;
+    const currentNodes = nodesRef.current || [];
+    const parentNode = currentNodes.find((n) => n.id === parentId);
     const isRootParent = parentNode && parentNode.type === "processNode";
 
-    // Always pass originalControlId if available
-    setNodesRef.current((prev) => [
-      ...prev,
-      {
-        id: newId,
-        type: "controlNode",
-        position: { x: isRootParent ? -450 : parentPosition.x + 400, y: parentPosition.y },
-        data: { ...controlItem, title: controlItem.name, _id: newId, originalControlId: controlItem.originalControlId || controlItem.ControlID || controlItem.id, onDeleteNode: handleDeleteNodeRef.current, onEditNode: handleEditNodeRef.current, onNodeAction },
-      },
-    ]);
+    let existingNode = null;
+    let existingEdge = null;
 
     if (isRootParent) {
-      setEdgesRef.current((prev) => [
-        ...prev,
-        {
-          id: `edge-${newId}-to-${parentId}`,
-          source: newId,
-          target: parentId,
-          type: "default",
-          style: { stroke: "#00cc95", strokeWidth: 1.5 },
-        },
-      ]);
+      const incomingEdges = edgesRef.current.filter((e) => e.target === parentId);
+      for (const e of incomingEdges) {
+        const sourceNode = currentNodes.find((n) => n.id === e.source);
+        if (sourceNode && sourceNode.type === "controlNode") {
+          const existingId = sourceNode.data?.originalControlId || sourceNode.data?.ControlID || sourceNode.id;
+          if (existingId === incomingControlId) {
+            existingNode = sourceNode;
+            existingEdge = e;
+            break;
+          }
+        }
+      }
     } else {
-      setEdgesRef.current((prev) => [
-        ...prev,
-        {
-          id: `edge-${parentId}-to-${newId}`,
-          source: parentId,
-          target: newId,
-          type: "default",
-          style: { stroke: "#00cc95", strokeWidth: 1.5 },
-        },
-      ]);
+      const outgoingEdges = edgesRef.current.filter((e) => e.source === parentId);
+      for (const e of outgoingEdges) {
+        const targetNode = currentNodes.find((n) => n.id === e.target);
+        if (targetNode && targetNode.type === "controlNode") {
+          const existingId = targetNode.data?.originalControlId || targetNode.data?.ControlID || targetNode.id;
+          if (existingId === incomingControlId) {
+            existingNode = targetNode;
+            existingEdge = e;
+            break;
+          }
+        }
+      }
     }
+
+    const shouldReactivateRisk = parentNode && parentNode.type === "riskNode" && String(parentNode.data?.processRiskStatus || parentNode.data?.status || "").toLowerCase() === "retired";
+
+    if (existingNode) {
+      const currentStatus = String(existingNode.data?.RiskControlStatus || existingNode.data?.status || "").toLowerCase();
+      if (currentStatus === "retired") {
+        setNodesRef.current((prev) => prev.map((n) => {
+          if (n.id === existingNode.id) return { ...n, data: { ...n.data, RiskControlStatus: "Active", status: "Active" } };
+          if (shouldReactivateRisk && n.id === parentId) return { ...n, data: { ...n.data, processRiskStatus: "Active", status: "Active" } };
+          return n;
+        }));
+        setEdgesRef.current((prev) => prev.map((e) => {
+          if (e.id === existingEdge.id) return { ...e, style: getRiskControlEdgeStyle("Active") };
+          if (shouldReactivateRisk && e.target === parentId) return { ...e, style: getProcessRiskEdgeStyle("Active") };
+          return e;
+        }));
+        kanbanRef.current?.removeItem(controlItem.id);
+        return;
+      }
+      showError("This Control already exists in this Risk!");
+      return;
+    }
+
+    const newId = `control-drop-${++idCounter}`;
+
+    setNodesRef.current((prev) => {
+      let nextNodes = prev;
+      if (shouldReactivateRisk) {
+        nextNodes = nextNodes.map((n) => n.id === parentId ? { ...n, data: { ...n.data, processRiskStatus: "Active", status: "Active" } } : n);
+      }
+      return [
+        ...nextNodes,
+        {
+          id: newId,
+          type: "controlNode",
+          position: { x: isRootParent ? -450 : parentPosition.x + 400, y: parentPosition.y },
+          data: { ...controlItem, title: controlItem.name, _id: newId, originalControlId: incomingControlId, onDeleteNode: handleDeleteNodeRef.current, onEditNode: handleEditNodeRef.current, onNodeAction },
+        },
+      ];
+    });
+
+    setEdgesRef.current((prev) => {
+      let nextEdges = prev;
+      if (shouldReactivateRisk) {
+        nextEdges = nextEdges.map((e) => e.target === parentId ? { ...e, style: getProcessRiskEdgeStyle("Active") } : e);
+      }
+      if (isRootParent) {
+        return [...nextEdges, { id: `edge-${newId}-to-${parentId}`, source: newId, target: parentId, type: "default", style: { stroke: "#00cc95", strokeWidth: 1.5 } }];
+      } else {
+        return [...nextEdges, { id: `edge-${parentId}-to-${newId}`, source: parentId, target: newId, type: "default", style: { stroke: "#00cc95", strokeWidth: 1.5 } }];
+      }
+    });
 
     kanbanRef.current?.removeItem(controlItem.id);
     positionNewNode(newId);
-  }, [positionNewNode, onNodeAction]);
+  }, [positionNewNode, onNodeAction, showError]);
 
   const handleAddRisk = useCallback((parentRootId, riskData) => {
+    const incomingRiskId = riskData.originalRiskId || riskData.RiskID || riskData.id;
+    const currentNodes = nodesRef.current || [];
+
+    const targetEdges = edgesRef.current.filter((e) => e.source === parentRootId);
+    let existingNode = null;
+    let existingEdge = null;
+
+    for (const e of targetEdges) {
+      const targetNode = currentNodes.find((n) => n.id === e.target);
+      if (targetNode && targetNode.type === "riskNode") {
+        const existingId = targetNode.data?.originalRiskId || targetNode.data?.RiskID || targetNode.id;
+        if (existingId === incomingRiskId) {
+          existingNode = targetNode;
+          existingEdge = e;
+          break;
+        }
+      }
+    }
+
+    if (existingNode) {
+      const currentStatus = String(existingNode.data?.processRiskStatus || existingNode.data?.status || "").toLowerCase();
+      if (currentStatus === "retired") {
+        setNodesRef.current((prev) => prev.map((n) => n.id === existingNode.id ? { ...n, data: { ...n.data, processRiskStatus: "Active", status: "Active" } } : n));
+        setEdgesRef.current((prev) => prev.map((e) => e.id === existingEdge.id ? { ...e, style: getProcessRiskEdgeStyle("Active") } : e));
+        return;
+      }
+      showError("This Risk already exists in this Process!");
+      return;
+    }
+
     const newId = `risk-new-${++idCounter}`;
     setNodesRef.current((prev) => {
       const riskCount = prev.filter((n) => n.type === "riskNode").length;
@@ -367,51 +431,124 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
           id: newId,
           type: "riskNode",
           position: { x: 400, y: riskCount * 250 },
-          data: { ...riskData, title: riskData.name, _id: newId, originalRiskId: riskData.originalRiskId || riskData.RiskID || riskData.id, onDropControl: handleDropControl, onDeleteNode: handleDeleteNodeRef.current, onEditNode: handleEditNodeRef.current, onOpenPanel: openPanel, showError, onNodeAction },
+          data: { ...riskData, title: riskData.name, _id: newId, originalRiskId: incomingRiskId, onDropControl: handleDropControl, onDeleteNode: handleDeleteNodeRef.current, onEditNode: handleEditNodeRef.current, onOpenPanel: openPanel, showError, onNodeAction },
         },
       ];
     });
     setEdgesRef.current((prev) => [
       ...prev,
-      {
-        id: `edge-${parentRootId}-to-${newId}`,
-        source: parentRootId,
-        target: newId,
-        type: "default",
-        style: { stroke: "#00cc95", strokeWidth: 1.5 },
-      },
+      { id: `edge-${parentRootId}-to-${newId}`, source: parentRootId, target: newId, type: "default", style: { stroke: "#00cc95", strokeWidth: 1.5 } },
     ]);
     positionNewNode(newId);
-  }, [handleDropControl, onNodeAction]);
+  }, [handleDropControl, onNodeAction, openPanel, showError, positionNewNode]);
 
   const handleAddControl = useCallback((parentRootId, controlData) => {
+    const incomingControlId = controlData.originalControlId || controlData.ControlID || controlData.id;
+    const currentNodes = nodesRef.current || [];
+    const parentNode = currentNodes.find((n) => n.id === parentRootId);
+    
+    const incomingEdges = edgesRef.current.filter((e) => e.target === parentRootId);
+    let existingNode = null;
+    let existingEdge = null;
+
+    for (const e of incomingEdges) {
+      const sourceNode = currentNodes.find((n) => n.id === e.source);
+      if (sourceNode && sourceNode.type === "controlNode") {
+        const existingId = sourceNode.data?.originalControlId || sourceNode.data?.ControlID || sourceNode.id;
+        if (existingId === incomingControlId) {
+          existingNode = sourceNode;
+          existingEdge = e;
+          break;
+        }
+      }
+    }
+
+    const shouldReactivateRisk = parentNode && parentNode.type === "riskNode" && String(parentNode.data?.processRiskStatus || parentNode.data?.status || "").toLowerCase() === "retired";
+
+    if (existingNode) {
+      const currentStatus = String(existingNode.data?.RiskControlStatus || existingNode.data?.status || "").toLowerCase();
+      if (currentStatus === "retired") {
+        setNodesRef.current((prev) => prev.map((n) => {
+          if (n.id === existingNode.id) return { ...n, data: { ...n.data, RiskControlStatus: "Active", status: "Active" } };
+          if (shouldReactivateRisk && n.id === parentRootId) return { ...n, data: { ...n.data, processRiskStatus: "Active", status: "Active" } };
+          return n;
+        }));
+        setEdgesRef.current((prev) => prev.map((e) => {
+          if (e.id === existingEdge.id) return { ...e, style: getRiskControlEdgeStyle("Active") };
+          if (shouldReactivateRisk && e.target === parentRootId) return { ...e, style: getProcessRiskEdgeStyle("Active") };
+          return e;
+        }));
+        return;
+      }
+      showError("This Control already exists in this Risk!");
+      return;
+    }
+
     const newId = `control-new-${++idCounter}`;
+    
     setNodesRef.current((prev) => {
-      const controlCount = prev.filter((n) => n.type === "controlNode").length;
+      let nextNodes = prev;
+      if (shouldReactivateRisk) {
+        nextNodes = nextNodes.map((n) => n.id === parentRootId ? { ...n, data: { ...n.data, processRiskStatus: "Active", status: "Active" } } : n);
+      }
+      const controlCount = nextNodes.filter((n) => n.type === "controlNode").length;
       return [
-        ...prev,
+        ...nextNodes,
         {
           id: newId,
           type: "controlNode",
           position: { x: -450, y: controlCount * 250 },
-          data: { ...controlData, title: controlData.name, _id: newId, originalControlId: controlData.originalControlId || controlData.ControlID || controlData.id, onDeleteNode: handleDeleteNodeRef.current, onEditNode: handleEditNodeRef.current, onNodeAction },
+          data: { ...controlData, title: controlData.name, _id: newId, originalControlId: incomingControlId, onDeleteNode: handleDeleteNodeRef.current, onEditNode: handleEditNodeRef.current, onNodeAction },
         },
       ];
     });
-    setEdgesRef.current((prev) => [
-      ...prev,
-      {
-        id: `edge-${newId}-to-${parentRootId}`,
-        source: newId,
-        target: parentRootId,
-        type: "default",
-        style: { stroke: "#00cc95", strokeWidth: 1.5 },
-      },
-    ]);
+
+    setEdgesRef.current((prev) => {
+      let nextEdges = prev;
+      if (shouldReactivateRisk) {
+        nextEdges = nextEdges.map((e) => e.target === parentRootId ? { ...e, style: getProcessRiskEdgeStyle("Active") } : e);
+      }
+      return [
+        ...nextEdges,
+        { id: `edge-${newId}-to-${parentRootId}`, source: newId, target: parentRootId, type: "default", style: { stroke: "#00cc95", strokeWidth: 1.5 } },
+      ];
+    });
+
     positionNewNode(newId);
-  }, [positionNewNode, onNodeAction]);
+  }, [positionNewNode, onNodeAction, showError]);
 
   const handleDropRisk = useCallback((parentRootId, parentPosition, riskItem) => {
+    const incomingRiskId = riskItem.originalRiskId || riskItem.RiskID || riskItem.id;
+    const currentNodes = nodesRef.current || [];
+
+    const targetEdges = edgesRef.current.filter((e) => e.source === parentRootId);
+    let existingNode = null;
+    let existingEdge = null;
+
+    for (const e of targetEdges) {
+      const targetNode = currentNodes.find((n) => n.id === e.target);
+      if (targetNode && targetNode.type === "riskNode") {
+        const existingId = targetNode.data?.originalRiskId || targetNode.data?.RiskID || targetNode.id;
+        if (existingId === incomingRiskId) {
+          existingNode = targetNode;
+          existingEdge = e;
+          break;
+        }
+      }
+    }
+
+    if (existingNode) {
+      const currentStatus = String(existingNode.data?.processRiskStatus || existingNode.data?.status || "").toLowerCase();
+      if (currentStatus === "retired") {
+        setNodesRef.current((prev) => prev.map((n) => n.id === existingNode.id ? { ...n, data: { ...n.data, processRiskStatus: "Active", status: "Active" } } : n));
+        setEdgesRef.current((prev) => prev.map((e) => e.id === existingEdge.id ? { ...e, style: getProcessRiskEdgeStyle("Active") } : e));
+        kanbanRef.current?.removeItem(riskItem.id);
+        return;
+      }
+      showError("This Risk already exists in this Process!");
+      return;
+    }
+
     const newId = `risk-drop-${++idCounter}`;
     setNodesRef.current((prev) => [
       ...prev,
@@ -419,29 +556,21 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
         id: newId,
         type: "riskNode",
         position: { x: parentPosition.x + 400, y: parentPosition.y },
-        data: { ...riskItem, title: riskItem.name, _id: newId, originalRiskId: riskItem.originalRiskId || riskItem.RiskID || riskItem.id, onDropControl: handleDropControl, onDeleteNode: handleDeleteNodeRef.current, onEditNode: handleEditNodeRef.current, onOpenPanel: openPanel, showError, onNodeAction },
+        data: { ...riskItem, title: riskItem.name, _id: newId, originalRiskId: incomingRiskId, onDropControl: handleDropControl, onDeleteNode: handleDeleteNodeRef.current, onEditNode: handleEditNodeRef.current, onOpenPanel: openPanel, showError, onNodeAction },
       },
     ]);
     setEdgesRef.current((prev) => [
       ...prev,
-      {
-        id: `edge-${parentRootId}-to-${newId}`,
-        source: parentRootId,
-        target: newId,
-        type: "default",
-        style: { stroke: "#00cc95", strokeWidth: 1.5 },
-      },
+      { id: `edge-${parentRootId}-to-${newId}`, source: parentRootId, target: newId, type: "default", style: { stroke: "#00cc95", strokeWidth: 1.5 } },
     ]);
     kanbanRef.current?.removeItem(riskItem.id);
     positionNewNode(newId);
-  }, [handleDropControl, positionNewNode, onNodeAction]);
+  }, [handleDropControl, positionNewNode, onNodeAction, openPanel, showError]);
 
   const initialData = useMemo(
     () => buildFlowData(processItems, mockProcessNodes, riskItems, controlItems),
     [processItems, riskItems, controlItems],
   );
-
-  const showError = useCallback((msg) => setErrorMsg(msg), []);
 
   const openPanel = useCallback((filterType) => {
     setPanelFilter(filterType);
@@ -485,10 +614,8 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
 
   handleEditNodeRef.current = handleEditNode;
 
-  // Only reset nodes/edges when input data actually changes
   const prevDataRef = useRef({ processItems, controlItems, riskItems });
 
-  // Create nodesWithCallbacks only when input data actually changes
   const nodesWithCallbacks = useMemo(() => {
     return initialData.nodes.map((node) => {
       if (node.type === "processNode") {
@@ -542,28 +669,20 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
         },
       };
     });
-    // eslint-disable-next-line
-  }, [initialData.nodes, handleAddRisk, handleAddControl, handleDropRisk, handleDropControl, handleDeleteNode, handleEditNode, showError, openPanel]);
-
+  }, [initialData.nodes, handleAddRisk, handleAddControl, handleDropRisk, handleDropControl, handleDeleteNode, handleEditNode, showError, openPanel, onNodeAction]);
 
   const [nodes, setNodes] = useState(() => layoutNodes(nodesWithCallbacks, initialData.edges));
   const [edges, setEdges] = useState(initialData.edges);
 
-  // Helper: flatten process, risk, control into flat array (like ProcessDataset)
   function flattenProcessDatasetFromGraph(nodes, edges) {
     const nodeMap = Object.fromEntries(nodes.map(n => [n.id, n]));
     const processNodes = nodes.filter(n => n.type === 'processNode');
     const rows = [];
 
-    // Build a set of (RiskID, ControlID) pairs from the original input ProcessDataset (flat, from processDatasetFlat)
     const inputRows = Array.isArray(processDatasetFlat) ? processDatasetFlat : [];
-    const inputPairs = new Set(
-      inputRows.map(row => `${row.RiskID || ''}|||${row.ControlID || ''}`)
-    );
 
     processNodes.forEach(proc => {
       const riskEdges = edges.filter(e => e.source === proc.id && nodeMap[e.target]?.type === 'riskNode');
-      // Extract all process fields, fallback to empty string if missing
       const processFields = {
         CoreProcessID: proc.id,
         HeraclesProcessActivityID: proc.data.HeraclesProcessActivityID || "",
@@ -573,11 +692,10 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
         ProcessStatus: proc.data.ProcessStatus || "",
         DepartmentName: proc.data.department || "",
       };
+
       if (riskEdges.length === 0) {
-        // Process without risk
         rows.push({
           ...processFields,
-          // Risk fields empty
           RiskID: "",
           ProcessRiskStatus: "",
           RiskShortName: "",
@@ -585,7 +703,6 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
           RiskLikelihood: "",
           RiskImpact: "",
           RiskStatus: "",
-          // Control fields empty
           ControlID: "",
           RiskControlStatus: "",
           ControlName: "",
@@ -593,7 +710,6 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
           ControlCategory: "",
           ControlOwner: "",
           ControlStatus: "",
-          // Marker fields
           ProcessRiskMarker: "",
           RiskControlMarker: "",
         });
@@ -601,11 +717,27 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
         riskEdges.forEach(e => {
           const riskNode = nodeMap[e.target];
           const riskId = riskNode.data.RiskID || riskNode.data.originalRiskId || riskNode.id;
+          
+          const originalRiskRows = inputRows.filter(r => 
+            (r.CoreProcessID === proc.id || r.HeraclesProcessActivityID === proc.data.HeraclesProcessActivityID) && 
+            r.RiskID === riskId
+          );
+
+          let processRiskMarker = "";
+          const currentRiskStatus = String(riskNode.data.processRiskStatus || riskNode.data.status || "").toLowerCase();
+
+          if (originalRiskRows.length === 0) {
+            processRiskMarker = "add";
+          } else {
+            const wasAllRiskRetired = originalRiskRows.every(r => String(r.ProcessRiskStatus || "").toLowerCase() === "retired");
+            if (wasAllRiskRetired && currentRiskStatus !== "retired") {
+              processRiskMarker = "reactive";
+            }
+          }
+
           const controlEdges = edges.filter(ed => ed.source === riskNode.id && nodeMap[ed.target]?.type === 'controlNode');
+
           if (controlEdges.length === 0) {
-            // Risk without control
-            const pairKey = `${riskId || ''}|||`;
-            const isNew = !inputPairs.has(pairKey);
             rows.push({
               ...processFields,
               RiskID: riskId,
@@ -615,7 +747,6 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
               RiskLikelihood: riskNode.data.likelihood || "",
               RiskImpact: riskNode.data.impact || "",
               RiskStatus: riskNode.data.status || "",
-              // Control fields empty
               ControlID: "",
               RiskControlStatus: "",
               ControlName: "",
@@ -623,19 +754,28 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
               ControlCategory: "",
               ControlOwner: "",
               ControlStatus: "",
-              // Marker fields
-              ProcessRiskMarker: isNew ? "add" : "",
+              ProcessRiskMarker: processRiskMarker,
               RiskControlMarker: "",
             });
           } else {
-            // Determine if the risk itself is new (for ProcessRiskMarker)
-            const riskPairKey = `${riskId || ''}|||`;
-            const isNewRisk = !inputPairs.has(riskPairKey);
             controlEdges.forEach(ce => {
               const ctrl = nodeMap[ce.target];
               const controlId = ctrl.data.ControlID || ctrl.data.originalControlId || ctrl.id || "";
-              const pairKey = `${riskId || ''}|||${controlId || ''}`;
-              const isNewControl = !inputPairs.has(pairKey);
+
+              const originalControlRow = originalRiskRows.find(r => r.ControlID === controlId);
+
+              let riskControlMarker = "";
+              const currentControlStatus = String(ctrl.data.RiskControlStatus || ctrl.data.status || "").toLowerCase();
+
+              if (!originalControlRow) {
+                riskControlMarker = "add";
+              } else {
+                const wasControlRetired = String(originalControlRow.RiskControlStatus || "").toLowerCase() === "retired";
+                if (wasControlRetired && currentControlStatus !== "retired") {
+                  riskControlMarker = "reactive";
+                }
+              }
+
               rows.push({
                 ...processFields,
                 RiskID: riskId,
@@ -652,9 +792,8 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
                 ControlCategory: ctrl.data.category || "",
                 ControlOwner: ctrl.data.owner || "",
                 ControlStatus: ctrl.data.status || "",
-                // Marker fields
-                ProcessRiskMarker: isNewRisk && isNewControl ? "add" : "",
-                RiskControlMarker: isNewControl ? "add" : "",
+                ProcessRiskMarker: processRiskMarker,
+                RiskControlMarker: riskControlMarker,
               });
             });
           }
@@ -664,7 +803,6 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
     return rows;
   }
 
-  // Call onProcessDatasetChange whenever nodes or edges change (init and after edits)
   useEffect(() => {
     if (typeof onProcessDatasetChange === 'function') {
       const flatRows = flattenProcessDatasetFromGraph(nodes, edges);
@@ -680,15 +818,12 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
       !isEqual(prev.controlItems, controlItems) ||
       !isEqual(prev.riskItems, riskItems)
     ) {
-      // Data actually changed, reset nodes/edges
       const nextNodes = layoutNodes(nodesWithCallbacks, initialData.edges);
       setNodes(nextNodes);
       setEdges(initialData.edges);
       nodesRef.current = nextNodes;
       edgesRef.current = initialData.edges;
       prevDataRef.current = { processItems, controlItems, riskItems };
-    } else {
-      // If only callback changes, do nothing
     }
     // eslint-disable-next-line
   }, [processItems, controlItems, riskItems, nodesWithCallbacks, initialData.edges]);

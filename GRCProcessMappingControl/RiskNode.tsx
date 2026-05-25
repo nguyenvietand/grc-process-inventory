@@ -9,8 +9,6 @@ export default function RiskNode({ id, data, positionAbsoluteX, positionAbsolute
   const [isDragOver, setIsDragOver] = React.useState(false);
   const [detailOpen, setDetailOpen] = React.useState(false);
 
-  console.log("Rendering RiskNode with data:", data);
-
   const handleNodeDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
