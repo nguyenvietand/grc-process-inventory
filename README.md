@@ -20,6 +20,7 @@
 4. **Build the solution:**
    ```sh
    dotnet build --configuration Release
+   dotnet build --configuration Release -p:SolutionPackageType=Unmanaged
    ```
    - The .zip file will be in `Solutions/bin/Release/` (e.g., `Solutions/bin/Release/<solution-name>.zip`).
 
