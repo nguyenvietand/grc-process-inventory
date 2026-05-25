@@ -302,6 +302,8 @@ const KanbanPanel = forwardRef(function KanbanPanel({ open, onClose, filterType,
                 />
               ))}
             </Stack>
+            {/* Hide the '+ Add item' button in risk and control panels. Uncomment below to re-enable. */}
+            {/*
             {col.nodeType !== "processNode" && (
               <Typography
                 variant="body2"
@@ -321,6 +323,7 @@ const KanbanPanel = forwardRef(function KanbanPanel({ open, onClose, filterType,
                 + Add item
               </Typography>
             )}
+            */}
             <Divider sx={{ mt: 2 }} />
           </Box>
           );
