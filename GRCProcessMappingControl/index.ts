@@ -100,13 +100,13 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
             controlItems = controlsDataset.sortedRecordIds.map((id) => {
                 const record = controlsDataset.records[id];
                 return {
-                    id: getDatasetValue(controlsDataset, record, 'ControlID') || record.getRecordId(),
-                    name: getDatasetValue(controlsDataset, record, 'ControlName'),
-                    description: getDatasetValue(controlsDataset, record, 'ControlDesc'),
-                    category: getDatasetValue(controlsDataset, record, 'ControlCategory'),
-                    owner: getDatasetValue(controlsDataset, record, 'ControlOwner'),
-                    status: getDatasetValue(controlsDataset, record, 'ControlStatus'),
-                    parentId: getDatasetValue(controlsDataset, record, 'RiskID'),
+                    id: getDatasetValue(controlsDataset, record, 'Controls_ControlID') || record.getRecordId(),
+                    name: getDatasetValue(controlsDataset, record, 'Controls_ControlName'),
+                    description: getDatasetValue(controlsDataset, record, 'Controls_ControlDesc'),
+                    category: getDatasetValue(controlsDataset, record, 'Controls_ControlCategory'),
+                    owner: getDatasetValue(controlsDataset, record, 'Controls_ControlOwner'),
+                    status: getDatasetValue(controlsDataset, record, 'Controls_ControlStatus'),
+                    parentId: getDatasetValue(controlsDataset, record, 'Controls_RiskID'),
                 };
             });
         }
@@ -123,10 +123,10 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
             riskItems = risksDataset.sortedRecordIds.map((id) => {
                 const record = risksDataset.records[id];
                 return {
-                    id: getDatasetValue(risksDataset, record, 'RiskID') || record.getRecordId(),
-                    name: getDatasetValue(risksDataset, record, 'RiskName'),
-                    description: getDatasetValue(risksDataset, record, 'RiskDesc'),
-                    parentId: getDatasetValue(risksDataset, record, 'ProcessID'),
+                    id: getDatasetValue(risksDataset, record, 'Risks_RiskID') || record.getRecordId(),
+                    name: getDatasetValue(risksDataset, record, 'Risks_RiskName'),
+                    description: getDatasetValue(risksDataset, record, 'Risks_RiskDesc'),
+                    parentId: getDatasetValue(risksDataset, record, 'Risks_ProcessID'),
                 };
             });
         }
@@ -162,6 +162,7 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
         if (processDataset && !processDataset.loading && processDataset.sortedRecordIds.length > 0) {
             // Each row = 1 Process → Risk → Control relationship (flat)
             // Group by CoreProcessID → RiskID to build nested structure
+
             const processMap: Record<string, {
                 id: string;
                 title: string;
@@ -180,20 +181,20 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
 
             processDataset.sortedRecordIds.forEach((id) => {
                 const record = processDataset.records[id];
-                const processId = getDatasetValue(processDataset, record, 'CoreProcessID') || record.getRecordId();
-                const riskId = getDatasetValue(processDataset, record, 'RiskID');
-                const controlId = getDatasetValue(processDataset, record, 'ControlID');
+                const processId = getDatasetValue(processDataset, record, 'Process_CoreProcessID') || record.getRecordId();
+                const riskId = getDatasetValue(processDataset, record, 'Process_RiskID');
+                const controlId = getDatasetValue(processDataset, record, 'Process_ControlID');
 
                 // Upsert process
                 if (!processMap[processId]) {
                     processMap[processId] = {
                         id: processId,
-                        title: getDatasetValue(processDataset, record, 'ProcessActivityName'),
-                        department: getDatasetValue(processDataset, record, 'DepartmentName'),
-                        owner: getDatasetValue(processDataset, record, 'Owner'),
-                        HeraclesProcessActivityID: getDatasetValue(processDataset, record, 'HeraclesProcessActivityID'),
-                        Index: getDatasetValue(processDataset, record, 'Index'),
-                        ProcessStatus: getDatasetValue(processDataset, record, 'ProcessStatus'),
+                        title: getDatasetValue(processDataset, record, 'Process_ProcessActivityName'),
+                        department: getDatasetValue(processDataset, record, 'Process_DepartmentName'),
+                        owner: getDatasetValue(processDataset, record, 'Process_Owner'),
+                        HeraclesProcessActivityID: getDatasetValue(processDataset, record, 'Process_HeraclesProcessActivityID'),
+                        Index: getDatasetValue(processDataset, record, 'Process_Index'),
+                        ProcessStatus: getDatasetValue(processDataset, record, 'Process_ProcessStatus'),
                         risks: {},
                     };
                 }
@@ -204,13 +205,13 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
                 if (!processMap[processId].risks[riskId]) {
                     processMap[processId].risks[riskId] = {
                         RiskID: riskId,
-                        ProcessRiskStatus: getDatasetValue(processDataset, record, 'ProcessRiskStatus'),
+                        ProcessRiskStatus: getDatasetValue(processDataset, record, 'Process_ProcessRiskStatus'),
                         RiskObject: {
-                            RiskShortName: getDatasetValue(processDataset, record, 'RiskShortName'),
-                            Description: getDatasetValue(processDataset, record, 'RiskDescription'),
-                            Likelihood: getDatasetValue(processDataset, record, 'RiskLikelihood'),
-                            Impact: getDatasetValue(processDataset, record, 'RiskImpact'),
-                            RiskStatus: getDatasetValue(processDataset, record, 'RiskStatus'),
+                            RiskShortName: getDatasetValue(processDataset, record, 'Process_RiskShortName'),
+                            Description: getDatasetValue(processDataset, record, 'Process_RiskDescription'),
+                            Likelihood: getDatasetValue(processDataset, record, 'Process_RiskLikelihood'),
+                            Impact: getDatasetValue(processDataset, record, 'Process_RiskImpact'),
+                            RiskStatus: getDatasetValue(processDataset, record, 'Process_RiskStatus'),
                         },
                         Controls: [],
                     };
@@ -222,12 +223,12 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
                     if (!existingControl) {
                         processMap[processId].risks[riskId].Controls.push({
                             ControlID: controlId,
-                            RiskControlStatus: getDatasetValue(processDataset, record, 'RiskControlStatus'),
-                            ControlName: getDatasetValue(processDataset, record, 'ControlName'),
-                            ControlDesc: getDatasetValue(processDataset, record, 'ControlDesc'),
-                            ControlCategory: getDatasetValue(processDataset, record, 'ControlCategory'),
-                            ControlOwner: getDatasetValue(processDataset, record, 'ControlOwner'),
-                            ControlStatus: getDatasetValue(processDataset, record, 'ControlStatus'),
+                            RiskControlStatus: getDatasetValue(processDataset, record, 'Process_RiskControlStatus'),
+                            ControlName: getDatasetValue(processDataset, record, 'Process_ControlName'),
+                            ControlDesc: getDatasetValue(processDataset, record, 'Process_ControlDesc'),
+                            ControlCategory: getDatasetValue(processDataset, record, 'Process_ControlCategory'),
+                            ControlOwner: getDatasetValue(processDataset, record, 'Process_ControlOwner'),
+                            ControlStatus: getDatasetValue(processDataset, record, 'Process_ControlStatus'),
                         });
                     }
                 }
