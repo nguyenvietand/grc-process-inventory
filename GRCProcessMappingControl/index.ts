@@ -255,8 +255,8 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
 
         const fontFamily = this.context.parameters.fonts?.raw || undefined;
         // Use Power Apps displayMode for mode ("edit" or "view")
-        //const mode = this.context.mode.displayMode;
-        const mode = "edit";
+        const mode = this.context.mode.displayMode;
+        //const mode = "edit";
         this.root.render(
             React.createElement(
                 'div',
