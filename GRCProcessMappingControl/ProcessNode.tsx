@@ -10,7 +10,10 @@ import {
   Box,
 } from "@mui/material";
 
-export default function ProcessNode({ data, positionAbsoluteX, positionAbsoluteY }) {
+export default function ProcessNode(props) {
+  const { data, positionAbsoluteX, positionAbsoluteY } = props;
+  // Always get mode from props first, fallback to data.mode
+  const mode = props.mode || data.mode;
   const [isDragOver, setIsDragOver] = React.useState(false);
   const processRisks = Array.isArray(data.risks) ? data.risks : [];
 
@@ -55,54 +58,62 @@ export default function ProcessNode({ data, positionAbsoluteX, positionAbsoluteY
         onDrop={handleNodeDrop}
         sx={{
           minWidth: 240,
-          borderRadius: "12px",
-          border: isDragOver ? "2px dashed #d32f2f" : "1px solid #b9b9b9",
+          borderRadius: "10px",
+          border: isDragOver ? "2px dashed #d32f2f" : "1px solid #B4D6FA80",
           backgroundColor: isDragOver ? "#fff5f5" : "#ffffff",
           transition: "border 0.2s, background-color 0.2s",
         }}>
         <CardContent sx={{ p: "20px" }}>
           <Typography
             variant="h6"
-            sx={{
+            sx={(theme) => ({
               fontWeight: 700,
               fontSize: "1.1rem",
               lineHeight: 1.2,
               mb: 1.5,
               color: "#1a1a1a",
-            }}>
+              fontFamily: theme.typography.fontFamily,
+            })}
+          >
             {data.title}
           </Typography>
 
           <Typography
             variant="body2"
-            sx={{ color: "#555", mb: 0.5, fontSize: "1rem" }}>
+            sx={(theme) => ({ color: "#555", mb: 0.5, fontSize: "1rem", fontFamily: theme.typography.fontFamily })}
+          >
             {data.department}
           </Typography>
 
           <Typography
             variant="body2"
-            sx={{ color: "#555", mb: 2, fontSize: "1rem" }}>
+            sx={(theme) => ({ color: "#555", mb: 2, fontSize: "1rem", fontFamily: theme.typography.fontFamily })}
+          >
             Owner: {data.owner}
           </Typography>
 
           <Divider sx={{ mb: 2, borderColor: "#f0f0f0" }} />
 
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-            <Typography
-              onClick={() => {
-                if (data.onOpenPanel) data.onOpenPanel("riskNode");
-              }}
-              variant="body2"
-              sx={{
-                color: "#d32f2f",
-                fontWeight: 600,
-                cursor: "pointer",
-                display: "inline-block",
-                width: "fit-content",
-                "&:hover": { textDecoration: "underline" },
-              }}>
-              + Add Risk
-            </Typography>
+            {mode === 'edit' && (
+              <Typography
+                onClick={() => {
+                  if (data.onOpenPanel) data.onOpenPanel("riskNode");
+                }}
+                variant="body2"
+                sx={(theme) => ({
+                  color: "#d32f2f",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  display: "inline-block",
+                  width: "fit-content",
+                  fontFamily: theme.typography.fontFamily,
+                  "&:hover": { textDecoration: "underline" },
+                })}
+              >
+                + Add Risk
+              </Typography>
+            )}
           </Box>
         </CardContent>
       </Card>

@@ -5,7 +5,10 @@ import { Handle, Position } from "@xyflow/react";
 import { Card, CardContent, Typography, Box, Divider, Button } from "@mui/material";
 import AddItemDialog from "./AddItemDialog";
 
-export default function RiskNode({ id, data, positionAbsoluteX, positionAbsoluteY }) {
+export default function RiskNode(props) {
+  const { id, data, positionAbsoluteX, positionAbsoluteY } = props;
+  // Always get mode from props first, fallback to data.mode
+  const mode = props.mode || data.mode;
   const [isDragOver, setIsDragOver] = React.useState(false);
   const [detailOpen, setDetailOpen] = React.useState(false);
 
@@ -57,15 +60,15 @@ export default function RiskNode({ id, data, positionAbsoluteX, positionAbsolute
         sx={{
           minWidth: 280,
           maxWidth: 320,
-          borderRadius: "12px",
-          border: isDragOver ? "2px dashed #1976d2" : "1px solid #ffcdd2",
-          backgroundColor: isDragOver ? "#f0f7ff" : "#fffcfc",
+          borderRadius: "10px",
+          border: isDragOver ? "2px dashed #1976d2" : "1px solid #FFC9C9",
+          backgroundColor: isDragOver ? "#f0f7ff" : "#FFF7F7",
           boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
           transition: "border 0.2s, background-color 0.2s",
         }}>
         <CardContent sx={{ p: "20px", pb: "16px" }}>
           <Box
-            sx={{
+            sx={(theme) => ({
               backgroundColor: "#ffedd4",
               color: "#9f2d00",
               fontSize: "0.75rem",
@@ -75,62 +78,73 @@ export default function RiskNode({ id, data, positionAbsoluteX, positionAbsolute
               display: "inline-block",
               mb: 1.5,
               textTransform: "uppercase",
-            }}>
+              fontFamily: theme.typography.fontFamily,
+            })}
+          >
             Risk
           </Box>
 
           <Typography
             variant="h6"
-            sx={{
+            sx={(theme) => ({
               fontWeight: 700,
               fontSize: "1.1rem",
               lineHeight: 1.2,
               mb: 1,
               color: "#1a1a1a",
-            }}>
+              fontFamily: theme.typography.fontFamily,
+            })}
+          >
             {data.title}
           </Typography>
 
           <Typography
             variant="body2"
-            sx={{ color: "#555", mb: 2, fontSize: "0.9rem" }}>
+            sx={(theme) => ({ color: "#555", mb: 2, fontSize: "0.9rem", fontFamily: theme.typography.fontFamily })}
+          >
             {data.description}
           </Typography>
 
           <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 1 }}>
             <Box
-              sx={{
+              sx={(theme) => ({
                 backgroundColor: "#e8f5e9",
                 color: "#2e7d32",
                 fontSize: "0.75rem",
                 fontWeight: 600,
                 padding: "2px 8px",
                 borderRadius: "4px",
-              }}>
+                fontFamily: theme.typography.fontFamily,
+              })}
+            >
               Likelihood: {data.likelihood}
             </Box>
 
             <Box
-              sx={{
+              sx={(theme) => ({
                 backgroundColor: "#ffebee",
                 color: "#c62828",
                 fontSize: "0.75rem",
                 fontWeight: 600,
                 padding: "2px 8px",
                 borderRadius: "4px",
-              }}>
+                fontFamily: theme.typography.fontFamily,
+              })}
+            >
               Impact: {data.impact}
             </Box>
 
             <Box
-              sx={{
+              sx={(theme) => ({
                 backgroundColor: "#fff9c4",
                 color: "#f57f17",
                 fontSize: "0.75rem",
                 fontWeight: 600,
                 padding: "2px 8px",
                 borderRadius: "4px",
-              }}>
+                fontFamily: theme.typography.fontFamily,
+              })}
+            >
               {data.status}
             </Box>
           </Box>
@@ -139,41 +153,59 @@ export default function RiskNode({ id, data, positionAbsoluteX, positionAbsolute
 
           <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-              <Typography
-                variant="body2"
-                onClick={() => {
-                  if (data.onOpenPanel) data.onOpenPanel("controlNode");
-                }}
-                sx={{
-                  color: "#1976d2",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  display: "inline-block",
-                  width: "fit-content",
-                  "&:hover": { textDecoration: "underline" },
-                }}>
-                + Add Control
-              </Typography>
+              {mode === 'edit' && (
+                <Typography
+                  variant="body2"
+                  onClick={() => {
+                    if (data.onOpenPanel) data.onOpenPanel("controlNode");
+                  }}
+                  sx={(theme) => ({
+                    color: "#1976d2",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    display: "inline-block",
+                    width: "fit-content",
+                    fontFamily: theme.typography.fontFamily,
+                    "&:hover": { textDecoration: "underline" },
+                  })}
+                >
+                  + Add Control
+                </Typography>
+              )}
               <Typography
                 variant="body2"
                 onClick={() => { if (data.onNodeAction) data.onNodeAction("risk", data.originalRiskId || data.RiskID || id, "info"); }}
-                sx={{
-                  color: "#888",
+                sx={(theme) => ({
+                  color: "#2771c2",
                   fontWeight: 600,
                   cursor: "pointer",
                   display: "inline-block",
                   width: "fit-content",
+                  fontFamily: theme.typography.fontFamily,
                   "&:hover": { textDecoration: "underline" },
-                }}>
-                Info
+                })}
+              >
+                [ i ] Info
               </Typography>
             </Box>
-            <Button
-              size="small"
-              onClick={() => { if (data.onNodeAction) data.onNodeAction("risk", data.originalRiskId || data.RiskID || id, "edit"); }}
-              sx={{ textTransform: "none", color: "#555", minWidth: "auto", p: "0 8px" }}>
-              Edit
-            </Button>
+            {mode === 'edit' && (
+              <Button
+                size="small"
+                onClick={() => { if (data.onNodeAction) data.onNodeAction("risk", data.originalRiskId || data.RiskID || id, "edit"); }}
+                sx={(theme) => ({
+                  textTransform: "none",
+                  color: "#2771c2",
+                  minWidth: "auto",
+                  p: "0 8px",
+                  fontFamily: theme.typography.fontFamily,
+                  fontWeight: 600,
+                  fontSize: '0.95rem',
+                  letterSpacing: 0.1,
+                })}
+              >
+                Edit
+              </Button>
+            )}
           </Box>
         </CardContent>
       </Card>

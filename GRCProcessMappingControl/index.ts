@@ -253,6 +253,10 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
         this.container.style.position = 'relative';
         this.container.style.display = 'block';
 
+        const fontFamily = this.context.parameters.fonts?.raw || undefined;
+        // Use Power Apps displayMode for mode ("edit" or "view")
+        //const mode = this.context.mode.displayMode;
+        const mode = "edit";
         this.root.render(
             React.createElement(
                 'div',
@@ -266,7 +270,7 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
                         left: 0,
                     },
                 },
-                React.createElement(ChartDemoApp, { processItems, controlItems, riskItems, processDatasetFlat, onNodeAction, onProcessDatasetChange }),
+                React.createElement(ChartDemoApp, { processItems, controlItems, riskItems, processDatasetFlat, onNodeAction, onProcessDatasetChange, fontFamily, mode }),
             ),
         );
     }

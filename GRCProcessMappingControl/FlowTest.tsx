@@ -12,7 +12,9 @@ import {
   ReactFlowProvider,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+
 import { Snackbar, Alert } from "@mui/material";
+import ResetIcon from "./ResetIcon";
 
 import ProcessNode from "./ProcessNode";
 import RiskNode from "./RiskNode";
@@ -63,15 +65,15 @@ function getRiskControlEdgeStyle(riskControlStatus) {
 function buildFlowData(processData, rootData, riskData, controlData) {
   const rootSource = (processData && processData.length > 0)
     ? processData.map((item) => ({
-        _id: item.id,
-        title: item.title,
-        department: item.department,
-        owner: item.owner,
-        risks: item.risks || [],
-        HeraclesProcessActivityID: item.HeraclesProcessActivityID || "",
-        Index: item.Index || "",
-        ProcessStatus: item.ProcessStatus || "",
-      }))
+      _id: item.id,
+      title: item.title,
+      department: item.department,
+      owner: item.owner,
+      risks: item.risks || [],
+      HeraclesProcessActivityID: item.HeraclesProcessActivityID || "",
+      Index: item.Index || "",
+      ProcessStatus: item.ProcessStatus || "",
+    }))
     : rootData;
 
   const rootNodes = rootSource.map((item, index) => ({
@@ -103,16 +105,16 @@ function buildFlowData(processData, rootData, riskData, controlData) {
     });
 
     const uniqueRiskIds = Object.keys(riskMapping);
-    
+
     riskNodes.push(
       ...uniqueRiskIds.map((riskId, index) => {
         const riskDetail = riskData?.find((r) => r.id === riskId);
         const mappedRisk = riskMapping[riskId][0];
         const riskObject = mappedRisk?.riskObject || {};
-        
+
         const nestedRiskFromProcess = processData?.[0]?.risks?.find(r => r.RiskID === riskId);
         const controls = nestedRiskFromProcess?.Controls || [];
-        
+
         return {
           id: riskId,
           type: "riskNode",
@@ -132,7 +134,7 @@ function buildFlowData(processData, rootData, riskData, controlData) {
         };
       })
     );
-    
+
     riskNodes.forEach((riskNode) => {
       if (riskNode.data.controls && riskNode.data.controls.length > 0) {
         riskNode.data.controls.forEach((control) => {
@@ -215,11 +217,11 @@ function buildFlowData(processData, rootData, riskData, controlData) {
 
 let idCounter = 100;
 
-function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, onNodeAction, onProcessDatasetChange }) {
+function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, onNodeAction, onProcessDatasetChange, mode }) {
   const [panelOpen, setPanelOpen] = useState(false);
   const [panelFilter, setPanelFilter] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
-  
+
   const showError = useCallback((msg) => setErrorMsg(msg), []);
 
   const { screenToFlowPosition, fitView } = useReactFlow();
@@ -446,7 +448,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
     const incomingControlId = controlData.originalControlId || controlData.ControlID || controlData.id;
     const currentNodes = nodesRef.current || [];
     const parentNode = currentNodes.find((n) => n.id === parentRootId);
-    
+
     const incomingEdges = edgesRef.current.filter((e) => e.target === parentRootId);
     let existingNode = null;
     let existingEdge = null;
@@ -485,7 +487,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
     }
 
     const newId = `control-new-${++idCounter}`;
-    
+
     setNodesRef.current((prev) => {
       let nextNodes = prev;
       if (shouldReactivateRisk) {
@@ -629,6 +631,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
             onDropControl: handleDropControl,
             onOpenPanel: openPanel,
             showError,
+            mode,
           },
         };
       }
@@ -644,6 +647,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
             showError,
             onNodeAction,
             originalRiskId: node.data.originalRiskId || node.data.RiskID || node.data.id,
+            mode,
           },
         };
       }
@@ -656,6 +660,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
             onEditNode: handleEditNode,
             onNodeAction,
             originalControlId: node.data.originalControlId || node.data.ControlID || node.data.id,
+            mode,
           },
         };
       }
@@ -666,10 +671,11 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
           onDeleteNode: handleDeleteNode,
           onEditNode: handleEditNode,
           onNodeAction,
+          mode,
         },
       };
     });
-  }, [initialData.nodes, handleAddRisk, handleAddControl, handleDropRisk, handleDropControl, handleDeleteNode, handleEditNode, showError, openPanel, onNodeAction]);
+  }, [initialData.nodes, handleAddRisk, handleAddControl, handleDropRisk, handleDropControl, handleDeleteNode, handleEditNode, showError, openPanel, onNodeAction, mode]);
 
   const [nodes, setNodes] = useState(() => layoutNodes(nodesWithCallbacks, initialData.edges));
   const [edges, setEdges] = useState(initialData.edges);
@@ -717,9 +723,9 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
         riskEdges.forEach(e => {
           const riskNode = nodeMap[e.target];
           const riskId = riskNode.data.RiskID || riskNode.data.originalRiskId || riskNode.id;
-          
-          const originalRiskRows = inputRows.filter(r => 
-            (r.CoreProcessID === proc.id || r.HeraclesProcessActivityID === proc.data.HeraclesProcessActivityID) && 
+
+          const originalRiskRows = inputRows.filter(r =>
+            (r.CoreProcessID === proc.id || r.HeraclesProcessActivityID === proc.data.HeraclesProcessActivityID) &&
             r.RiskID === riskId
           );
 
@@ -909,26 +915,8 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
 
   return (
     <div style={{ width: "100%", height: "100%", backgroundColor: "#fdfdfd", position: "relative" }}>
-      <button
-        onClick={relayout}
-        style={{
-          position: "absolute",
-          top: 10,
-          left: 10,
-          zIndex: 10,
-          padding: "8px 16px",
-          backgroundColor: "#1976d2",
-          color: "#fff",
-          border: "none",
-          borderRadius: "6px",
-          cursor: "pointer",
-          fontSize: "0.85rem",
-          fontWeight: 600,
-        }}
-      >
-        Reset
-      </button>
       <ReactFlow
+        nodesDraggable={mode === 'edit'}
         key={nodes.map(n => n.id).join('-')}
         nodes={nodes}
         edges={edges}
@@ -943,7 +931,24 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
         proOptions={{ hideAttribution: true }}
       >
         <Background color="#e0e0e0" />
-        <Controls />
+        <Controls
+          position="bottom-left"
+          showInteractive={mode === 'edit'}
+          showZoom={true}
+          showFitView={true}
+        >
+          {mode === 'edit' && (
+            <button
+              type="button"
+              className="react-flow__controls-button"
+              title="Reset"
+              onClick={relayout}
+              tabIndex={0}
+              aria-label="Reset"
+            >
+              <ResetIcon />
+            </button>)}
+        </Controls>
       </ReactFlow>
 
       <KanbanPanel

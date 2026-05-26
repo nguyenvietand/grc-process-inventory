@@ -120,10 +120,10 @@ function DraggableItem({ item, nodeType, color, onDelete }) {
       }}
     >
       <CardContent sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}>
-        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+        <Typography variant="subtitle2" sx={(theme) => ({ fontWeight: 600, fontFamily: theme.typography.fontFamily })}>
           {item.name}
         </Typography>
-        <Typography variant="caption" sx={{ color: "#666" }}>
+        <Typography variant="caption" sx={(theme) => ({ color: "#666", fontFamily: theme.typography.fontFamily })}>
           {item.description}
         </Typography>
       </CardContent>
@@ -246,7 +246,7 @@ const KanbanPanel = forwardRef(function KanbanPanel({ open, onClose, filterType,
           borderBottom: "1px solid #eee",
         }}
       >
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+        <Typography variant="h6" sx={(theme) => ({ fontWeight: 700, fontFamily: theme.typography.fontFamily })}>
           {filterType === "riskNode"
             ? "Drag risks to board"
             : filterType === "controlNode"
@@ -287,9 +287,9 @@ const KanbanPanel = forwardRef(function KanbanPanel({ open, onClose, filterType,
           <Box key={col.id} sx={{ mb: 3 }}>
             <Typography
               variant="subtitle1"
-              sx={{ fontWeight: 700, color: col.color, mb: 1 }}
+              sx={(theme) => ({ fontWeight: 700, color: col.color, mb: 1, fontFamily: theme.typography.fontFamily })}
             >
-              {col.title} {searchQuery && <span style={{ fontWeight: 400, fontSize: "0.8rem", color: "#999" }}>({filteredItems.length})</span>}
+              {col.title} {searchQuery && <span style={{ fontWeight: 400, fontSize: "0.8rem", color: "#999", fontFamily: 'inherit' }}>({filteredItems.length})</span>}
             </Typography>
             <Stack spacing={1}>
               {filteredItems.map((item) => (

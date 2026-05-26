@@ -18,12 +18,17 @@ export default function NodeFooter({ onEdit, onDelete }) {
         <Button
           size="small"
           onClick={onEdit}
-          sx={{
+          sx={(theme) => ({
             textTransform: "none",
             color: "#555",
             minWidth: "auto",
             p: "0 8px",
-          }}>
+            fontFamily: theme.typography.fontFamily,
+            fontWeight: 600,
+            fontSize: '0.95rem',
+            letterSpacing: 0.1,
+          })}
+        >
           Edit
         </Button>
         {/* Delete button hidden temporarily */}
