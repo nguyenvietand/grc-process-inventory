@@ -834,6 +834,18 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
     // eslint-disable-next-line
   }, [processItems, controlItems, riskItems, nodesWithCallbacks, initialData.edges]);
 
+  useEffect(() => {
+  setNodes((prevNodes) =>
+    prevNodes.map((node) => ({
+      ...node,
+      data: {
+        ...node.data,
+        mode: mode,
+      },
+    }))
+  );
+}, [mode]);
+
   setNodesRef.current = setNodes;
   setEdgesRef.current = (updater) => {
     setEdges((prev) => {

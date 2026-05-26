@@ -7,8 +7,7 @@ import AddItemDialog from "./AddItemDialog";
 
 export default function RiskNode(props) {
   const { id, data, positionAbsoluteX, positionAbsoluteY } = props;
-  // Always get mode from props first, fallback to data.mode
-  const mode = props.mode || data.mode;
+  const mode = data.mode;
   const [isDragOver, setIsDragOver] = React.useState(false);
   const [detailOpen, setDetailOpen] = React.useState(false);
 

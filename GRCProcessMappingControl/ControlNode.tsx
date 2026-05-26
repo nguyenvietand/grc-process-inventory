@@ -8,8 +8,8 @@ import AddItemDialog from "./AddItemDialog";
 
 export default function ControlNode(props) {
   const { id, data } = props;
-  // Always get mode from props first, fallback to data.mode
-  const mode = props.mode || data.mode;
+  // Always get mode from data (as passed from FlowBoard)
+  const mode = data.mode;
   const [detailOpen, setDetailOpen] = React.useState(false);
 
   return (
