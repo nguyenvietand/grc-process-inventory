@@ -442,7 +442,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
           id: newId,
           type: "riskNode",
           position: { x: 400, y: riskCount * 250 },
-          data: { ...riskData, title: riskData.name, _id: newId, originalRiskId: incomingRiskId, onDropControl: handleDropControl, onDeleteNode: handleDeleteNodeRef.current, onEditNode: handleEditNodeRef.current, onOpenPanel: openPanel, showError, onNodeAction },
+          data: { ...riskData, title: riskData.name, _id: newId, originalRiskId: incomingRiskId, onDropControl: handleDropControl, onDeleteNode: handleDeleteNodeRef.current, onEditNode: handleEditNodeRef.current, onOpenPanel: openPanel, showError, onNodeAction, mode },
         },
       ];
     });
@@ -509,7 +509,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
           id: newId,
           type: "controlNode",
           position: { x: -450, y: controlCount * 250 },
-          data: { ...controlData, title: controlData.name, _id: newId, originalControlId: incomingControlId, onDeleteNode: handleDeleteNodeRef.current, onEditNode: handleEditNodeRef.current, onNodeAction },
+          data: { ...controlData, title: controlData.name, _id: newId, originalControlId: incomingControlId, onDeleteNode: handleDeleteNodeRef.current, onEditNode: handleEditNodeRef.current, onNodeAction, mode },
         },
       ];
     });
@@ -835,7 +835,6 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
       const flatRows = flattenProcessDatasetFromGraph(nodes, edges);
       onProcessDatasetChange(flatRows);
     }
-    // eslint-disable-next-line
   }, [nodes, edges]);
 
   useEffect(() => {
@@ -852,7 +851,6 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
       edgesRef.current = initialData.edges;
       prevDataRef.current = { processItems, controlItems, riskItems };
     }
-    // eslint-disable-next-line
   }, [processItems, controlItems, riskItems, nodesWithCallbacks, initialData.edges]);
 
   useEffect(() => {
@@ -984,17 +982,16 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
           showZoom={true}
           showFitView={true}
         >
-          {mode === 'edit' && (
-            <button
-              type="button"
-              className="react-flow__controls-button"
-              title="Reset"
-              onClick={resetflow}
-              tabIndex={0}
-              aria-label="Reset"
-            >
-              <ResetIcon />
-            </button>)}
+          <button
+            type="button"
+            className="react-flow__controls-button"
+            title="Reset"
+            onClick={resetflow}
+            tabIndex={0}
+            aria-label="Reset"
+          >
+            <ResetIcon />
+          </button>
         </Controls>
       </ReactFlow>
 

@@ -7,11 +7,11 @@ import ChartDemoApp from './ChartDemoApp';
 
 export class GRCProcessMappingControl implements ComponentFramework.StandardControl<IInputs, IOutputs> {
     private outputAction: IOutputs = {};
-    private _eventOnButtonSelect?: ComponentFramework.FactoryApi.Event;
     private lastProcessDatasetOutput: string | undefined;
     private notifyOutputChanged: (() => void) | null = null;
     private root: Root | null = null;
     private context: ComponentFramework.Context<IInputs>;
+    private lastResetKey: number | undefined;
     private container: HTMLDivElement;
 
     public init(
@@ -25,15 +25,19 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
         this.container = container;
         this.root = createRoot(container);
         this.notifyOutputChanged = notifyOutputChanged;
-        // Get reference to custom event
-        if (context && context._event && context._event.OnButtonSelect) {
-            this._eventOnButtonSelect = context._event.OnButtonSelect;
-        }
         this.render();
     }
 
     public updateView(context: ComponentFramework.Context<IInputs>): void {
         this.context = context;
+        // Check if resetKey changed
+        const currentResetKey = context.parameters.resetKey?.raw;
+        if (currentResetKey !== undefined && currentResetKey !== this.lastResetKey) {
+            this.lastResetKey = currentResetKey;
+            // Trigger layout reset by forcing rerender with a new key
+            this.render(true);
+            return;
+        }
         this.render();
     }
 
@@ -46,14 +50,14 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
         this.root = null;
     }
 
-    private render(): void {
+    private render(forceReset = false): void {
         // Always call notifyOutputChanged to update output property
         const onNodeAction = (Type: string, ID: string, Action: string) => {
             this.outputAction = { ...this.outputAction, Type, ID, Action };
             if (this.notifyOutputChanged) this.notifyOutputChanged();
             // Trigger custom OnButtonSelect event for Info/Edit
-            if (this._eventOnButtonSelect && (Action === 'info' || Action === 'edit')) {
-                this._eventOnButtonSelect();
+            if (this.context && this.context.events && typeof this.context.events.OnButtonSelect === 'function' && (Action === 'info' || Action === 'edit')) {
+                this.context.events.OnButtonSelect();
             }
         };
 
@@ -126,6 +130,7 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
                 name: string;
                 description: string;
                 parentId: string;
+                status?: string;
             }[]
             | undefined;
         if (risksDataset && !risksDataset.loading && risksDataset.sortedRecordIds.length > 0) {
@@ -136,6 +141,7 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
                     name: getDatasetValue(risksDataset, record, 'Risks_RiskName'),
                     description: getDatasetValue(risksDataset, record, 'Risks_RiskDesc'),
                     parentId: getDatasetValue(risksDataset, record, 'Risks_ProcessID'),
+                    status: getDatasetValue(risksDataset, record, 'Risks_RiskStatus'),
                 };
             });
         }
@@ -272,6 +278,8 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
             mode = "disabled";
         }
 
+        // Use a key to force remount ChartDemoApp if reset is triggered
+        const chartKey = forceReset ? `reset-${Date.now()}` : undefined;
         this.root.render(
             React.createElement(
                 'div',
@@ -285,8 +293,9 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
                         left: 0,
                     },
                 },
-                React.createElement(ChartDemoApp, { processItems, controlItems, riskItems, processDatasetFlat, onNodeAction, onProcessDatasetChange, fontFamily, mode }),
+                React.createElement(ChartDemoApp, { processItems, controlItems, riskItems, processDatasetFlat, onNodeAction, onProcessDatasetChange, fontFamily, mode, key: chartKey }),
             ),
         );
+
     }
 }

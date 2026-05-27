@@ -14,6 +14,8 @@
     <!-- Output properties for node actions -->
     <!-- Font family input property for dynamic font -->
     <property name="fonts" display-name-key="Fonts" description-key="Fonts_Desc" usage="input" of-type="SingleLine.Text" required="false" />
+    <!-- Reset trigger property -->
+    <property name="resetKey" display-name-key="ResetKey" description-key="ResetKey_Desc" usage="input" of-type="Whole.None" required="false" />
     <property name="Type" display-name-key="Type" description-key="Type_Desc" usage="output" of-type="SingleLine.Text" />
     <property name="ID" display-name-key="ID" description-key="ID_Desc" usage="output" of-type="SingleLine.Text" />
     <property name="Action" display-name-key="Action" description-key="Action_Desc" usage="output" of-type="SingleLine.Text" />
@@ -42,6 +44,7 @@
       <property-set name="Risks_RiskName" display-name-key="RiskName" of-type="SingleLine.Text" usage="bound" required="true" />
       <property-set name="Risks_RiskDesc" display-name-key="RiskDesc" of-type="SingleLine.Text" usage="bound" required="false" />
       <property-set name="Risks_ProcessID" display-name-key="ProcessID" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="Risks_RiskStatus" display-name-key="RiskStatus" of-type="SingleLine.Text" usage="bound" required="false" />
     </data-set>
 
     <data-set name="ProcessDataset" display-name-key="ProcessDataset">
