@@ -7,6 +7,7 @@ import ChartDemoApp from './ChartDemoApp';
 
 export class GRCProcessMappingControl implements ComponentFramework.StandardControl<IInputs, IOutputs> {
     private outputAction: IOutputs = {};
+    private _eventOnButtonSelect?: ComponentFramework.FactoryApi.Event;
     private lastProcessDatasetOutput: string | undefined;
     private notifyOutputChanged: (() => void) | null = null;
     private root: Root | null = null;
@@ -24,6 +25,10 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
         this.container = container;
         this.root = createRoot(container);
         this.notifyOutputChanged = notifyOutputChanged;
+        // Get reference to custom event
+        if (context && context._event && context._event.OnButtonSelect) {
+            this._eventOnButtonSelect = context._event.OnButtonSelect;
+        }
         this.render();
     }
 
@@ -46,6 +51,10 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
         const onNodeAction = (Type: string, ID: string, Action: string) => {
             this.outputAction = { ...this.outputAction, Type, ID, Action };
             if (this.notifyOutputChanged) this.notifyOutputChanged();
+            // Trigger custom OnButtonSelect event for Info/Edit
+            if (this._eventOnButtonSelect && (Action === 'info' || Action === 'edit')) {
+                this._eventOnButtonSelect();
+            }
         };
 
         // Callback to update ProcessDatasetOutput when flow changes
@@ -113,11 +122,11 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
 
         let riskItems:
             | {
-                  id: string;
-                  name: string;
-                  description: string;
-                  parentId: string;
-              }[]
+                id: string;
+                name: string;
+                description: string;
+                parentId: string;
+            }[]
             | undefined;
         if (risksDataset && !risksDataset.loading && risksDataset.sortedRecordIds.length > 0) {
             riskItems = risksDataset.sortedRecordIds.map((id) => {
@@ -133,31 +142,31 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
 
         let processItems:
             | {
-                  id: string;
-                  title: string;
-                  department: string;
-                  owner: string;
-                  risks: {
-                      RiskID: string;
-                      ProcessRiskStatus: string;
-                      RiskObject?: {
-                          RiskShortName: string;
-                          Description: string;
-                          Likelihood: string;
-                          Impact: string;
-                          RiskStatus: string;
-                      };
-                      Controls: {
-                          ControlID: string;
-                          RiskControlStatus: string;
-                          ControlName: string;
-                          ControlDesc: string;
-                          ControlCategory: string;
-                          ControlOwner: string;
-                          ControlStatus: string;
-                      }[];
-                  }[];
-              }[]
+                id: string;
+                title: string;
+                department: string;
+                owner: string;
+                risks: {
+                    RiskID: string;
+                    ProcessRiskStatus: string;
+                    RiskObject?: {
+                        RiskShortName: string;
+                        Description: string;
+                        Likelihood: string;
+                        Impact: string;
+                        RiskStatus: string;
+                    };
+                    Controls: {
+                        ControlID: string;
+                        RiskControlStatus: string;
+                        ControlName: string;
+                        ControlDesc: string;
+                        ControlCategory: string;
+                        ControlOwner: string;
+                        ControlStatus: string;
+                    }[];
+                }[];
+            }[]
             | undefined;
         if (processDataset && !processDataset.loading && processDataset.sortedRecordIds.length > 0) {
             // Each row = 1 Process → Risk → Control relationship (flat)
@@ -255,8 +264,14 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
 
         const fontFamily = this.context.parameters.fonts?.raw || undefined;
         // Use Power Apps displayMode for mode ("edit" or "view")
-        const mode = this.context.mode.displayMode;
+        // const mode = this.context.mode.displayMode;
         //const mode = "edit";
+
+        let mode = "edit";
+        if (this.context.mode.isControlDisabled) {
+            mode = "disabled";
+        }
+
         this.root.render(
             React.createElement(
                 'div',

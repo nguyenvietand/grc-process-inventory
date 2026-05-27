@@ -8,8 +8,8 @@ import AddItemDialog from "./AddItemDialog";
 
 export default function ControlNode(props) {
   const { id, data } = props;
-  // Always get mode from props first, fallback to data.mode
-  const mode = props.mode || data.mode;
+  // Always get mode from data (as passed from FlowBoard)
+  const mode = data.mode;
   const [detailOpen, setDetailOpen] = React.useState(false);
 
   return (
@@ -21,13 +21,14 @@ export default function ControlNode(props) {
       />
       <Card
         sx={{
-          minWidth: 320,
-          maxWidth: 320,
+          //minWidth: 320,
+          //maxWidth: 320,
+          width: 400,
           borderRadius: "10px",
           border: "1px solid #e5eefd",
           backgroundColor: "#F7FAFF",
         }}>
-        <CardContent>
+        <CardContent sx={{ p: "20px", pb: "16px", textAlign: "left" }}>
           <Typography
             variant="h6"
             sx={(theme) => ({
@@ -48,7 +49,6 @@ export default function ControlNode(props) {
               color: "#555",
               mb: 1,
               fontSize: "0.9rem",
-              fontWeight: 700,
               fontFamily: theme.typography.fontFamily,
             })}
           >
@@ -61,7 +61,6 @@ export default function ControlNode(props) {
                 sx={(theme) => ({
                   color: "#555",
                   fontSize: "0.8rem",
-                  textTransform: "uppercase",
                   fontFamily: theme.typography.fontFamily,
                 })}
               >
@@ -75,38 +74,26 @@ export default function ControlNode(props) {
                   color: "#555",
                   mb: 2,
                   fontSize: "0.8rem",
-                  textTransform: "uppercase",
                   fontFamily: theme.typography.fontFamily,
                 })}
               >
                 OWNER: {data.owner} -
               </Typography>
             </Box>
-            <Box>
-              <Typography
-                variant="body2"
-                sx={(theme) => ({
-                  color: "#555",
-                  mb: 2,
-                  fontSize: "0.8rem",
-                  textTransform: "uppercase",
-                  fontFamily: theme.typography.fontFamily,
-                })}
-              >
-                CONTROLLER: {" "}
-                <Box
-                  component="span"
-                  sx={(theme) => ({
-                    backgroundColor: "#c3eeb0d0",
-                    padding: "2px 6px",
-                    borderRadius: "4px",
-                    fontWeight: "bold",
-                    fontFamily: theme.typography.fontFamily,
-                  })}
-                >
-                  {data.status}
-                </Box>
-              </Typography>
+          </Box>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+            <Box
+              sx={(theme) => ({
+                backgroundColor: data.status?.toLowerCase() === "retired" ? "#ffe2e2" : "#dcfce7",
+                color: data.status?.toLowerCase() === "retired" ? "#9f0712" : "#016630",
+                fontSize: "0.75rem",
+                fontWeight: 600,
+                padding: "2px 8px",
+                borderRadius: "4px",
+                fontFamily: theme.typography.fontFamily,
+              })}
+            >
+              {data.status}
             </Box>
           </Box>
           <Divider sx={{ mb: 1.5, mt: 1, borderColor: "#f0f0f0" }} />
@@ -130,22 +117,21 @@ export default function ControlNode(props) {
               </Typography>
             </Box>
             {mode === 'edit' && (
-              <Button
-                size="small"
+              <Typography
+                variant="body2"
                 onClick={() => { if (data.onNodeAction) data.onNodeAction("control", data.originalControlId || data.ControlID || id, "edit"); }}
                 sx={(theme) => ({
-                  textTransform: "none",
                   color: "#2771c2",
-                  minWidth: "auto",
-                  p: "0 8px",
-                  fontFamily: theme.typography.fontFamily,
                   fontWeight: 600,
-                  fontSize: '0.95rem',
-                  letterSpacing: 0.1,
+                  cursor: "pointer",
+                  display: "inline-block",
+                  width: "fit-content",
+                  fontFamily: theme.typography.fontFamily,
+                  "&:hover": { textDecoration: "underline" },
                 })}
               >
                 Edit
-              </Button>
+              </Typography>
             )}
           </Box>
         </CardContent>

@@ -372,7 +372,16 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
           id: newId,
           type: "controlNode",
           position: { x: isRootParent ? -450 : parentPosition.x + 400, y: parentPosition.y },
-          data: { ...controlItem, title: controlItem.name, _id: newId, originalControlId: incomingControlId, onDeleteNode: handleDeleteNodeRef.current, onEditNode: handleEditNodeRef.current, onNodeAction },
+          data: {
+            ...controlItem,
+            title: controlItem.name,
+            _id: newId,
+            originalControlId: incomingControlId,
+            onDeleteNode: handleDeleteNodeRef.current,
+            onEditNode: handleEditNodeRef.current,
+            onNodeAction,
+            mode,
+          },
         },
       ];
     });
@@ -558,7 +567,19 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
         id: newId,
         type: "riskNode",
         position: { x: parentPosition.x + 400, y: parentPosition.y },
-        data: { ...riskItem, title: riskItem.name, _id: newId, originalRiskId: incomingRiskId, onDropControl: handleDropControl, onDeleteNode: handleDeleteNodeRef.current, onEditNode: handleEditNodeRef.current, onOpenPanel: openPanel, showError, onNodeAction },
+        data: {
+          ...riskItem,
+          title: riskItem.name,
+          _id: newId,
+          originalRiskId: incomingRiskId,
+          onDropControl: handleDropControl,
+          onDeleteNode: handleDeleteNodeRef.current,
+          onEditNode: handleEditNodeRef.current,
+          onOpenPanel: openPanel,
+          showError,
+          onNodeAction,
+          mode,
+        },
       },
     ]);
     setEdgesRef.current((prev) => [
@@ -834,6 +855,24 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
     // eslint-disable-next-line
   }, [processItems, controlItems, riskItems, nodesWithCallbacks, initialData.edges]);
 
+  useEffect(() => {
+    setNodes((prevNodes) =>
+      prevNodes.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          mode: mode,
+        },
+      }))
+    );
+  }, [mode]);
+
+  useEffect(() => {
+    if (nodes.length > 0) {
+      relayout();
+    }
+  }, [nodes.length]);
+
   setNodesRef.current = setNodes;
   setEdgesRef.current = (updater) => {
     setEdges((prev) => {
@@ -904,7 +943,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
     [screenToFlowPosition, handleAddRisk, handleAddControl, handleDropRisk, handleDropControl, openPanel],
   );
 
-  const relayout = useCallback(() => {
+  const resetflow = useCallback(() => {
     const resetNodes = layoutNodes(nodesWithCallbacks, initialData.edges);
     setNodes(resetNodes);
     setEdges(initialData.edges);
@@ -912,6 +951,14 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
     edgesRef.current = initialData.edges;
     setTimeout(() => fitView({ padding: 0.1 }), 50);
   }, [nodesWithCallbacks, initialData.edges, fitView]);
+
+  const relayout = useCallback(() => {
+    setTimeout(() => {
+      setNodesRef.current((prevNodes) => {
+        return layoutNodes(prevNodes, edgesRef.current);
+      });
+    }, 0);
+  }, []);
 
   return (
     <div style={{ width: "100%", height: "100%", backgroundColor: "#fdfdfd", position: "relative" }}>
@@ -942,7 +989,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
               type="button"
               className="react-flow__controls-button"
               title="Reset"
-              onClick={relayout}
+              onClick={resetflow}
               tabIndex={0}
               aria-label="Reset"
             >

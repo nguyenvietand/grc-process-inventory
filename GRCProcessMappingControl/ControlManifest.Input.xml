@@ -18,8 +18,12 @@
     <property name="ID" display-name-key="ID" description-key="ID_Desc" usage="output" of-type="SingleLine.Text" />
     <property name="Action" display-name-key="Action" description-key="Action_Desc" usage="output" of-type="SingleLine.Text" />
 
+
     <!-- Add this property to export the Table as a JSON string -->
     <property name="ProcessDatasetOutput" display-name-key="ProcessDatasetOutput" description-key="Xuất dữ liệu ProcessDataset đã chỉnh sửa dưới dạng JSON" usage="output" of-type="Multiple" />
+
+    <!-- Custom event for button selection -->
+    <event name="OnButtonSelect" display-name-key="OnButtonSelect" description-key="OnButtonSelect_Desc" />
 
     
 
@@ -65,6 +69,9 @@
       <property-set name="Process_ControlCategory" display-name-key="ControlCategory" of-type="SingleLine.Text" usage="bound" required="false" />
       <property-set name="Process_ControlOwner" display-name-key="ControlOwner" of-type="SingleLine.Text" usage="bound" required="false" />
       <property-set name="Process_ControlStatus" display-name-key="ControlStatus" of-type="SingleLine.Text" usage="bound" required="false" />
+      <!-- Marker fields for robust input/output preservation -->
+      <property-set name="ProcessRiskMarker" display-name-key="ProcessRiskMarker" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="RiskControlMarker" display-name-key="RiskControlMarker" of-type="SingleLine.Text" usage="bound" required="false" />
     </data-set>
 
     <resources>

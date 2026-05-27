@@ -12,8 +12,8 @@ import {
 
 export default function ProcessNode(props) {
   const { data, positionAbsoluteX, positionAbsoluteY } = props;
-  // Always get mode from props first, fallback to data.mode
-  const mode = props.mode || data.mode;
+  // Always get mode from data (as passed from FlowBoard)
+  const mode = data.mode;
   const [isDragOver, setIsDragOver] = React.useState(false);
   const processRisks = Array.isArray(data.risks) ? data.risks : [];
 
@@ -57,13 +57,14 @@ export default function ProcessNode(props) {
         onDragLeave={handleNodeDragLeave}
         onDrop={handleNodeDrop}
         sx={{
-          minWidth: 240,
+          //minWidth: 240,
+          width: 400,
           borderRadius: "10px",
           border: isDragOver ? "2px dashed #d32f2f" : "1px solid #B4D6FA80",
           backgroundColor: isDragOver ? "#fff5f5" : "#ffffff",
           transition: "border 0.2s, background-color 0.2s",
         }}>
-        <CardContent sx={{ p: "20px" }}>
+        <CardContent sx={{ p: "20px", textAlign: "left" }}>
           <Typography
             variant="h6"
             sx={(theme) => ({
@@ -80,16 +81,16 @@ export default function ProcessNode(props) {
 
           <Typography
             variant="body2"
-            sx={(theme) => ({ color: "#555", mb: 0.5, fontSize: "1rem", fontFamily: theme.typography.fontFamily })}
+            sx={(theme) => ({ color: "#555", mb: 0.5, fontSize: "0.9rem", fontFamily: theme.typography.fontFamily })}
           >
             {data.department}
           </Typography>
 
           <Typography
             variant="body2"
-            sx={(theme) => ({ color: "#555", mb: 2, fontSize: "1rem", fontFamily: theme.typography.fontFamily })}
+            sx={(theme) => ({ color: "#555", mb: 2, fontSize: "0.8rem", fontFamily: theme.typography.fontFamily })}
           >
-            Owner: {data.owner}
+            OWNER: {data.owner}
           </Typography>
 
           <Divider sx={{ mb: 2, borderColor: "#f0f0f0" }} />

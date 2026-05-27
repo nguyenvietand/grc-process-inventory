@@ -7,8 +7,7 @@ import AddItemDialog from "./AddItemDialog";
 
 export default function RiskNode(props) {
   const { id, data, positionAbsoluteX, positionAbsoluteY } = props;
-  // Always get mode from props first, fallback to data.mode
-  const mode = props.mode || data.mode;
+  const mode = data.mode;
   const [isDragOver, setIsDragOver] = React.useState(false);
   const [detailOpen, setDetailOpen] = React.useState(false);
 
@@ -58,15 +57,16 @@ export default function RiskNode(props) {
         onDragLeave={handleNodeDragLeave}
         onDrop={handleNodeDrop}
         sx={{
-          minWidth: 280,
-          maxWidth: 320,
+          //minWidth: 280,
+          //maxWidth: 320,
+          width: 400,
           borderRadius: "10px",
           border: isDragOver ? "2px dashed #1976d2" : "1px solid #FFC9C9",
           backgroundColor: isDragOver ? "#f0f7ff" : "#FFF7F7",
           boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
           transition: "border 0.2s, background-color 0.2s",
         }}>
-        <CardContent sx={{ p: "20px", pb: "16px" }}>
+        <CardContent sx={{ p: "20px", pb: "16px", textAlign: "left" }}>
           <Box
             sx={(theme) => ({
               backgroundColor: "#ffedd4",
@@ -100,7 +100,12 @@ export default function RiskNode(props) {
 
           <Typography
             variant="body2"
-            sx={(theme) => ({ color: "#555", mb: 2, fontSize: "0.9rem", fontFamily: theme.typography.fontFamily })}
+            sx={(theme) => ({
+              color: "#555",
+              mb: 2,
+              fontSize: "0.9rem",
+              fontFamily: theme.typography.fontFamily
+            })}
           >
             {data.description}
           </Typography>
@@ -108,8 +113,10 @@ export default function RiskNode(props) {
           <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 1 }}>
             <Box
               sx={(theme) => ({
-                backgroundColor: "#e8f5e9",
-                color: "#2e7d32",
+                backgroundColor: data.likelihood?.toLowerCase() === "high" ? "#ffe2e2" :
+                  data.likelihood?.toLowerCase() === "medium" ? "#fef9c2" : "#dcfce7",
+                color: data.likelihood?.toLowerCase() === "high" ? "#9f0712" :
+                  data.likelihood?.toLowerCase() === "medium" ? "#894b00" : "#016630",
                 fontSize: "0.75rem",
                 fontWeight: 600,
                 padding: "2px 8px",
@@ -122,8 +129,10 @@ export default function RiskNode(props) {
 
             <Box
               sx={(theme) => ({
-                backgroundColor: "#ffebee",
-                color: "#c62828",
+                backgroundColor: data.impact?.toLowerCase() === "high" ? "#ffe2e2" :
+                  data.impact?.toLowerCase() === "medium" ? "#fef9c2" : "#dcfce7",
+                color: data.impact?.toLowerCase() === "high" ? "#9f0712" :
+                  data.impact?.toLowerCase() === "medium" ? "#894b00" : "#016630",
                 fontSize: "0.75rem",
                 fontWeight: 600,
                 padding: "2px 8px",
@@ -136,8 +145,8 @@ export default function RiskNode(props) {
 
             <Box
               sx={(theme) => ({
-                backgroundColor: "#fff9c4",
-                color: "#f57f17",
+                backgroundColor: data.status?.toLowerCase() === "retired" ? "#ffe2e2" : "#dcfce7",
+                color: data.status?.toLowerCase() === "retired" ? "#9f0712" : "#016630",
                 fontSize: "0.75rem",
                 fontWeight: 600,
                 padding: "2px 8px",
@@ -189,22 +198,21 @@ export default function RiskNode(props) {
               </Typography>
             </Box>
             {mode === 'edit' && (
-              <Button
-                size="small"
+              <Typography
+                variant="body2"
                 onClick={() => { if (data.onNodeAction) data.onNodeAction("risk", data.originalRiskId || data.RiskID || id, "edit"); }}
                 sx={(theme) => ({
-                  textTransform: "none",
                   color: "#2771c2",
-                  minWidth: "auto",
-                  p: "0 8px",
-                  fontFamily: theme.typography.fontFamily,
                   fontWeight: 600,
-                  fontSize: '0.95rem',
-                  letterSpacing: 0.1,
+                  cursor: "pointer",
+                  display: "inline-block",
+                  width: "fit-content",
+                  fontFamily: theme.typography.fontFamily,
+                  "&:hover": { textDecoration: "underline" },
                 })}
               >
                 Edit
-              </Button>
+              </Typography>
             )}
           </Box>
         </CardContent>
