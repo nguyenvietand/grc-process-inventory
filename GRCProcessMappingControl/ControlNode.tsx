@@ -107,7 +107,7 @@ export default function ControlNode(props) {
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
               <Typography
                 variant="body2"
-                onClick={() => { if (data.onNodeAction) data.onNodeAction("control", data.originalControlId || data.ControlID || id, "info"); }}
+                onClick={() => { if (data.onNodeAction) data.onNodeAction("control", data.originalControlId || data.ControlID || id, "info", data.Index ?? data.index); }}
                 sx={(theme) => ({
                   color: "#2771c2",
                   fontWeight: 600,
@@ -124,7 +124,7 @@ export default function ControlNode(props) {
             {mode === 'edit' && (
               <Typography
                 variant="body2"
-                onClick={() => { if (data.onNodeAction) data.onNodeAction("control", data.originalControlId || data.ControlID || id, "edit"); }}
+                onClick={() => { if (data.onNodeAction) data.onNodeAction("control", data.originalControlId || data.ControlID || id, "edit", data.Index ?? data.index); }}
                 sx={(theme) => ({
                   color: "#2771c2",
                   fontWeight: 600,

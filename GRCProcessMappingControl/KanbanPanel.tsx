@@ -11,10 +11,8 @@ import {
   Stack,
   Slide,
   TextField,
-  InputAdornment,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import SearchIcon from "@mui/icons-material/Search";
 import AddItemDialog from "./AddItemDialog";
 
 const kanbanColumns = [
@@ -106,39 +104,112 @@ function DraggableItem({ item, nodeType, color, onDelete }) {
     e.dataTransfer.effectAllowed = "move";
   };
 
+  const statusText = item.status || "Active";
+
   return (
     <Card
       draggable
       onDragStart={handleDragStart}
-      sx={{
+      sx={(theme) => ({
         cursor: "grab",
-        border: `1px solid ${color}33`,
-        "&:hover": { boxShadow: 3, transform: "translateY(-2px)" },
-        "&:active": { cursor: "grabbing" },
-        transition: "box-shadow 0.2s, transform 0.2s",
-        position: "relative",
-      }}
+        bgcolor: "#fff",
+        border: "1px solid #e2e8f0",
+        borderRadius: "6px",
+        boxShadow: "none",
+        mb: 1.2,
+        fontFamily: theme.typography.fontFamily,
+        "&:hover": {
+          boxShadow: "0 4px 12px rgba(0,0,0,0.03)",
+          borderColor: "#cbd5e1"
+        },
+        transition: "all 0.2s ease",
+      })}
     >
-      <CardContent sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}>
-        <Typography variant="subtitle2" sx={(theme) => ({ fontWeight: 600, fontFamily: theme.typography.fontFamily })}>
+      <CardContent sx={{ p: 1.5, "&:last-child": { pb: 1.5 }, textAlign: "left" }}>
+
+        <Typography
+          variant="subtitle2"
+          sx={{
+            fontWeight: 600,
+            color: "#333333",
+            mb: 0.5,
+            fontSize: "0.825rem",
+            lineHeight: 1.3,
+            fontFamily: "inherit"
+          }}
+        >
           {item.name}
         </Typography>
-        <Typography variant="caption" sx={(theme) => ({ color: "#666", fontFamily: theme.typography.fontFamily })}>
+
+        <Typography
+          variant="body2"
+          sx={{
+            color: "#4b5c6b",
+            fontSize: "0.75rem",
+            lineHeight: 1.4,
+            mb: nodeType === "controlNode" ? 1.5 : 0,
+            fontFamily: "inherit"
+          }}
+        >
           {item.description}
         </Typography>
+
+        {nodeType === "controlNode" && (
+          <Box
+            sx={(theme) => ({
+              marginTop: "8px",
+              display: "grid",
+              gridTemplateColumns: "1fr auto 1fr auto auto",
+              alignItems: "center",
+              columnGap: "10px",
+              fontSize: "0.6rem",
+              color: "#7d8fa5",
+              fontFamily: theme.typography.fontFamily,
+            })}
+          >
+            <Box sx={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              CATEGORY: {item.category || "N/A"}
+            </Box>
+
+            <Box sx={{ color: "#7d8fa5", userSelect: "none" }}>-</Box>
+
+            <Box sx={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              OWNER: {item.owner || "N/A"}
+            </Box>
+
+            <Box sx={{ color: "#7d8fa5", userSelect: "none" }}>-</Box>
+
+            <Box
+              sx={(theme) => ({
+                backgroundColor: statusText?.toLowerCase() === "retired" ? "#ffe2e2" : "#e6f9e6",
+                color: statusText?.toLowerCase() === "retired" ? "#9f0712" : "#26a251",
+                px: 0.75,
+                py: 0.15,
+                borderRadius: "3px",
+                fontWeight: 700,
+                fontSize: "0.5rem",
+                textTransform: "capitalize",
+                whiteSpace: "nowrap",
+                fontFamily: theme.typography.fontFamily,
+                justifySelf: "end",
+              })}
+            >
+              {statusText}
+            </Box>
+          </Box>
+        )}
       </CardContent>
-      {/* Delete (X) button hidden temporarily */}
     </Card>
   );
 }
 
-const KanbanPanel = forwardRef(function KanbanPanel({ open, onClose, filterType, controlItems, riskItems }, ref) {
+const KanbanPanel = forwardRef(function KanbanPanel({ open, onClose, filterType, controlItems, riskItems, onNodeAction }, ref) {
   const initialColumns = kanbanColumns.map((col) =>
     col.nodeType === 'controlNode' && controlItems && controlItems.length > 0
       ? { ...col, items: controlItems }
       : col.nodeType === 'riskNode' && riskItems && riskItems.length > 0
-      ? { ...col, items: riskItems }
-      : col
+        ? { ...col, items: riskItems }
+        : col
   );
   const [columns, setColumns] = useState(initialColumns);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -201,19 +272,19 @@ const KanbanPanel = forwardRef(function KanbanPanel({ open, onClose, filterType,
       prev.map((c) =>
         c.id === dialogColId
           ? {
-              ...c,
-              items: [
-                ...c.items,
-                {
-                  id: `kb-${Date.now()}`,
-                  ...formData,
-                  ...(col.nodeType === "processNode" && {
-                    title: formData.name,
-                    department: formData.department || "General",
-                  }),
-                },
-              ],
-            }
+            ...c,
+            items: [
+              ...c.items,
+              {
+                id: `kb-${Date.now()}`,
+                ...formData,
+                ...(col.nodeType === "processNode" && {
+                  title: formData.name,
+                  department: formData.department || "General",
+                }),
+              },
+            ],
+          }
           : c
       )
     );
@@ -223,112 +294,127 @@ const KanbanPanel = forwardRef(function KanbanPanel({ open, onClose, filterType,
     <>
       <Slide direction="left" in={open} timeout={300} unmountOnExit>
         <Box
-          sx={{
+          sx={(theme) => ({
             position: "absolute",
-            top: 0,
+            top: 2,
+            bottom: 2,
             right: 0,
+            borderRadius: "10px 0 0 10px",
             width: "min(360px, 100%)",
-            height: "100%",
             bgcolor: "#fafafa",
             borderLeft: "1px solid #ddd",
+            borderTop: "1px solid #ddd",
+            borderBottom: "1px solid #ddd",
             zIndex: 1300,
             display: "flex",
             flexDirection: "column",
             boxShadow: "-4px 0 12px rgba(0,0,0,0.08)",
-          }}
+            fontFamily: theme.typography.fontFamily
+          })}
         >
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          p: 2,
-          borderBottom: "1px solid #eee",
-        }}
-      >
-        <Typography variant="h6" sx={(theme) => ({ fontWeight: 700, fontFamily: theme.typography.fontFamily })}>
-          {filterType === "riskNode"
-            ? "Drag risks to board"
-            : filterType === "controlNode"
-            ? "Drag controls to board"
-            : "Drag items to board"}
-        </Typography>
-        <IconButton onClick={onClose} size="small">
-          <CloseIcon />
-        </IconButton>
-      </Box>
-
-      <Box sx={{ px: 2, pt: 1.5, pb: 0.5 }}>
-        <TextField
-          size="small"
-          fullWidth
-          placeholder="Search..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon fontSize="small" sx={{ color: "#aaa" }} />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ bgcolor: "#fff", borderRadius: 1 }}
-        />
-      </Box>
-
-      <Box sx={{ flex: 1, overflow: "auto", p: 2 }}>
-        {columns.filter((col) => !filterType || col.nodeType === filterType).map((col) => {
-          const filteredItems = col.items.filter((item) =>
-            !searchQuery ||
-            (item.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (item.description || "").toLowerCase().includes(searchQuery.toLowerCase())
-          );
-          return (
-          <Box key={col.id} sx={{ mb: 3 }}>
-            <Typography
-              variant="subtitle1"
-              sx={(theme) => ({ fontWeight: 700, color: col.color, mb: 1, fontFamily: theme.typography.fontFamily })}
-            >
-              {col.title} {searchQuery && <span style={{ fontWeight: 400, fontSize: "0.8rem", color: "#999", fontFamily: 'inherit' }}>({filteredItems.length})</span>}
+          {/* Header Panel */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              px: 2,
+              pt: 2
+            }}
+          >
+            <Typography variant="h6" sx={(theme) => ({ fontWeight: 700, fontFamily: theme.typography.fontFamily })}>
+              {filterType === "riskNode"
+                ? "Add Risk"
+                : filterType === "controlNode"
+                  ? "Add Control"
+                  : "Add Item"}
             </Typography>
-            <Stack spacing={1}>
-              {filteredItems.map((item) => (
-                <DraggableItem
-                  key={item.id}
-                  item={item}
-                  nodeType={col.nodeType}
-                  color={col.color}
-                  onDelete={handleDeleteKanbanItem}
-                />
-              ))}
-            </Stack>
-            {/* Hide the '+ Add item' button in risk and control panels. Uncomment below to re-enable. */}
-            {/*
-            {col.nodeType !== "processNode" && (
-              <Typography
-                variant="body2"
-                onClick={() => {
-                  setDialogNodeType(col.nodeType);
-                  setDialogColId(col.id);
-                  setDialogOpen(true);
-                }}
-                sx={{
-                  mt: 1,
-                  cursor: "pointer",
-                  color: col.color,
-                  fontWeight: 600,
-                  "&:hover": { textDecoration: "underline" },
-                }}
-              >
-                + Add item
-              </Typography>
-            )}
-            */}
-            <Divider sx={{ mt: 2 }} />
+            <IconButton onClick={onClose} size="small">
+              <CloseIcon />
+            </IconButton>
           </Box>
-          );
-        })}
-      </Box>
+
+          {/* Search Box */}
+          <Box sx={{ px: 2, pt: 0.5, pb: 0.5 }}>
+            <TextField
+              size="small"
+              fullWidth
+              placeholder={filterType === "controlNode" ? "Search control" : "Search risk"}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              sx={(theme) => ({
+                "& .MuiOutlinedInput-root": {
+                  bgcolor: "#f1f5f9",
+                  borderRadius: "6px",
+                  fontSize: "0.8rem",
+                  fontFamily: theme.typography.fontFamily,
+
+                  "& fieldset": { border: "none" },
+                  "&:hover fieldset": { border: "none" },
+                  "&.Mui-focused fieldset": { border: "none" },
+                },
+                "& input": {
+                  py: 1,
+                  color: "#334155",
+                  fontFamily: theme.typography.fontFamily,
+                  "&::placeholder": {
+                    color: "#94a3b8",
+                    opacity: 1,
+                    fontFamily: theme.typography.fontFamily
+                  },
+                },
+              })}
+            />
+          </Box>
+
+          {/* List Cards */}
+          <Box sx={{ flex: 1, overflow: "auto", pb: 2, px: 2 }}>
+            {columns.filter((col) => !filterType || col.nodeType === filterType).map((col) => {
+              const filteredItems = col.items.filter((item) =>
+                !searchQuery ||
+                (item.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (item.description || "").toLowerCase().includes(searchQuery.toLowerCase())
+              );
+              return (
+                <Box key={col.id} sx={{ mb: 3, textAlign: "left" }}>
+                  <Typography
+                    variant="body2"
+                    onClick={() => {
+                      const itemType = filterType === "controlNode" ? "control" : "risk";
+                      if (onNodeAction) {
+                        onNodeAction(itemType, "", "create", "");
+                      }
+                    }}
+                    sx={(theme) => ({
+                      color: filterType === "controlNode" ? "#1976d2" : "#d32f2f",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      display: "inline-block",
+                      width: "fit-content",
+                      fontFamily: theme.typography.fontFamily,
+                      mt: 1,
+                      mb: 1.5,
+                      fontSize: "0.825rem",
+                      "&:hover": { textDecoration: "underline" },
+                    })}
+                  >
+                    {filterType === "controlNode" ? "+ Create new control" : "+ Create new risk"}
+                  </Typography>
+                  <Stack spacing={1}>
+                    {filteredItems.map((item) => (
+                      <DraggableItem
+                        key={item.id}
+                        item={item}
+                        nodeType={col.nodeType}
+                        color={col.color}
+                        onDelete={handleDeleteKanbanItem}
+                      />
+                    ))}
+                  </Stack>
+                </Box>
+              );
+            })}
+          </Box>
         </Box>
       </Slide>
 

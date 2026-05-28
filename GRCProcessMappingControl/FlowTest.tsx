@@ -62,7 +62,10 @@ function getRiskControlEdgeStyle(riskControlStatus) {
   };
 }
 
-function buildFlowData(processData, rootData, riskData, controlData) {
+function buildFlowData(processData, processDatasetFlat, rootData, riskData, controlData) {
+  // ==========================================
+  // 1. BUILD PROCESS NODES (ROOT)
+  // ==========================================
   const rootSource = (processData && processData.length > 0)
     ? processData.map((item) => ({
       _id: item.id,
@@ -88,6 +91,9 @@ function buildFlowData(processData, rootData, riskData, controlData) {
   const riskMapping = {};
   const nestedControls = [];
 
+  // ==========================================
+  // 2. STRUCTURE RISK & CONTROL FROM PROCESSDATA
+  // ==========================================
   if (processData && processData.length > 0) {
     processData.forEach((process) => {
       if (process.risks && process.risks.length > 0) {
@@ -99,7 +105,7 @@ function buildFlowData(processData, rootData, riskData, controlData) {
             processId: process.id,
             status: nestedRisk.ProcessRiskStatus,
             riskObject: nestedRisk.RiskObject,
-            ProcessRiskMarker: nestedRisk.ProcessRiskMarker || "", // Store original marker in mapping
+            ProcessRiskMarker: nestedRisk.ProcessRiskMarker || "",
           });
         });
       }
@@ -113,7 +119,6 @@ function buildFlowData(processData, rootData, riskData, controlData) {
         const mappedRisk = riskMapping[riskId][0];
         const riskObject = mappedRisk?.riskObject || {};
 
-        // Scan to find the exact Risk in all processData instead of just the first element [0]
         let nestedRiskFromProcess = null;
         for (const p of processData) {
           const found = p.risks?.find(r => r.RiskID === riskId);
@@ -136,12 +141,14 @@ function buildFlowData(processData, rootData, riskData, controlData) {
             name: riskObject.RiskShortName || riskDetail?.name || riskId,
             description: riskObject.Description || riskDetail?.description,
             parentId: mappedRisk.processId,
+            allParentProcessIds: riskMapping[riskId].map(p => p.processId),
             likelihood: riskObject.Likelihood,
             impact: riskObject.Impact,
             status: riskObject.RiskStatus || mappedRisk.status,
             processRiskStatus: mappedRisk.status,
             controls: controls,
-            ProcessRiskMarker: processRiskMarker, // <-- Đã bọc cố định ProcessRiskMarker gốc vào Node Data
+            ProcessRiskMarker: processRiskMarker,
+            Index: ""
           },
         };
       })
@@ -153,6 +160,7 @@ function buildFlowData(processData, rootData, riskData, controlData) {
           nestedControls.push({
             ...control,
             riskId: riskNode.id,
+            processId: riskNode.data.parentId
           });
         });
       }
@@ -179,6 +187,7 @@ function buildFlowData(processData, rootData, riskData, controlData) {
           ...item,
           title: item.name,
           ProcessRiskMarker: item.ProcessRiskMarker || "",
+          Index: item.Index || ""
         },
       }))
     );
@@ -196,11 +205,16 @@ function buildFlowData(processData, rootData, riskData, controlData) {
     );
   }
 
+  // ==========================================
+  // 3. BUILD CONTROL NODES
+  // ==========================================
   const controlNodes = [];
   const controlEdges = [];
+
   if (nestedControls && nestedControls.length > 0) {
     nestedControls.forEach((control, index) => {
       const uniqueId = `${control.ControlID}__${control.riskId}`;
+
       controlNodes.push({
         id: uniqueId,
         type: "controlNode",
@@ -214,11 +228,14 @@ function buildFlowData(processData, rootData, riskData, controlData) {
           owner: control.ControlOwner,
           status: control.ControlStatus,
           parentId: control.riskId,
+          processId: control.processId,
           originalControlId: control.ControlID,
           RiskControlStatus: control.RiskControlStatus || "",
-          RiskControlMarker: control.RiskControlMarker || "", // <-- Đã bọc cố định RiskControlMarker gốc vào Node Data
+          RiskControlMarker: control.RiskControlMarker || "",
+          Index: ""
         },
       });
+
       controlEdges.push({
         id: `edge-${control.riskId}-to-${uniqueId}`,
         source: control.riskId,
@@ -228,8 +245,77 @@ function buildFlowData(processData, rootData, riskData, controlData) {
     });
   }
 
-  const edges = [...riskEdges, ...controlEdges];
-  return { nodes: [...rootNodes, ...riskNodes, ...controlNodes], edges };
+  // ==========================================
+  // 4. POST PROCESSING: GET INDEX FROM FLAT DATA
+  // ==========================================
+  const flatPool = processDatasetFlat?.records
+    ? (Array.isArray(processDatasetFlat.records) ? processDatasetFlat.records : Object.values(processDatasetFlat.records))
+    : (Array.isArray(processDatasetFlat) ? processDatasetFlat : []);
+
+  // Helper to safely get property from flat record (either PCF Dataset record or plain JS object)
+  const getPropFromFlat = (record, propName) => {
+    if (!record) return "";
+
+    if (typeof record.getValue === "function") {
+      const getValueSafe = (field) => {
+        try {
+          return record.getValue(field);
+        } catch (e) {
+          return null;
+        }
+      };
+
+      const val = getValueSafe(propName) || getValueSafe(`Process_${propName}`);
+      return val ? String(val).trim() : "";
+    }
+
+    const target = propName.toLowerCase();
+    const targetWithPrefix = `process_${target}`;
+
+    for (const key of Object.keys(record)) {
+      const lowerKey = key.toLowerCase();
+      if (lowerKey === target || lowerKey === targetWithPrefix) {
+        return String(record[key] || "").trim();
+      }
+    }
+    return "";
+  };
+
+  const isIdMatch = (id1, id2) => {
+    if (!id1 || !id2) return false;
+    return id1.toString().toLowerCase().trim() === id2.toString().toLowerCase().trim();
+  };
+
+  controlNodes.forEach((node) => {
+    const cId = node.data.originalControlId;
+    const rId = node.data.parentId;
+
+    const matchedRow = flatPool.find(row =>
+      isIdMatch(getPropFromFlat(row, "RiskID"), rId) &&
+      isIdMatch(getPropFromFlat(row, "ControlID"), cId)
+    );
+
+    if (matchedRow) {
+      node.data.Index = getPropFromFlat(matchedRow, "Index");
+    }
+  });
+
+  riskNodes.forEach((node) => {
+    const rId = node.id;
+    const matchedRows = flatPool.filter(row => isIdMatch(getPropFromFlat(row, "RiskID"), rId));
+
+    const allIndexes = matchedRows
+      .map(row => getPropFromFlat(row, "Index"))
+      .filter(idx => idx !== "");
+
+    const uniqueIndexes = Array.from(new Set(allIndexes));
+
+    if (uniqueIndexes.length > 0) {
+      node.data.Index = uniqueIndexes.join(",");
+    }
+  });
+
+  return { nodes: [...rootNodes, ...riskNodes, ...controlNodes], edges: [...riskEdges, ...controlEdges] };
 }
 let idCounter = 100;
 
@@ -649,7 +735,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
   }, [handleDropControl, positionNewNode, onNodeAction, openPanel, showError]);
 
   const initialData = useMemo(
-    () => buildFlowData(processItems, mockProcessNodes, riskItems, controlItems),
+    () => buildFlowData(processItems, processDatasetFlat, mockProcessNodes, riskItems, controlItems),
     [processItems, riskItems, controlItems],
   );
 
@@ -1021,6 +1107,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
         filterType={panelFilter}
         controlItems={controlItems}
         riskItems={riskItems}
+        onNodeAction={onNodeAction}
       />
 
       <Snackbar

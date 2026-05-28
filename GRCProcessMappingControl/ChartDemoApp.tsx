@@ -10,8 +10,7 @@ import { FlowBoard } from './FlowTest';
 
 export default function ChartDemoApp({ processItems, controlItems, riskItems, processDatasetFlat, onNodeAction, onProcessDatasetChange, fontFamily, mode }) {
   const theme = createDynamicTheme(fontFamily);
-
-  console.log('Rendering with props:', { processItems });
+  
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />

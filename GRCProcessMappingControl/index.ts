@@ -52,11 +52,12 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
 
     private render(forceReset = false): void {
         // Always call notifyOutputChanged to update output property
-        const onNodeAction = (Type: string, ID: string, Action: string) => {
-            this.outputAction = { ...this.outputAction, Type, ID, Action };
+        // Add Index to outputAction (for output property)
+        const onNodeAction = (Type: string, ID: string, Action: string, Index?: string | number) => {
+            this.outputAction = { ...this.outputAction, Type, ID, Action, Index };
             if (this.notifyOutputChanged) this.notifyOutputChanged();
             // Trigger custom OnButtonSelect event for Info/Edit
-            if (this.context && this.context.events && typeof this.context.events.OnButtonSelect === 'function' && (Action === 'info' || Action === 'edit')) {
+            if (this.context && this.context.events && typeof this.context.events.OnButtonSelect === 'function' && (Action === 'info' || Action === 'edit' || Action === 'create')) {
                 this.context.events.OnButtonSelect();
             }
         };

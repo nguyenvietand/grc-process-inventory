@@ -16,9 +16,11 @@
     <property name="fonts" display-name-key="Fonts" description-key="Fonts_Desc" usage="input" of-type="SingleLine.Text" required="false" />
     <!-- Reset trigger property -->
     <property name="resetKey" display-name-key="ResetKey" description-key="ResetKey_Desc" usage="input" of-type="Whole.None" required="false" />
+
     <property name="Type" display-name-key="Type" description-key="Type_Desc" usage="output" of-type="SingleLine.Text" />
     <property name="ID" display-name-key="ID" description-key="ID_Desc" usage="output" of-type="SingleLine.Text" />
     <property name="Action" display-name-key="Action" description-key="Action_Desc" usage="output" of-type="SingleLine.Text" />
+    <property name="Index" display-name-key="Index" description-key="Index_Desc" usage="output" of-type="SingleLine.Text" />
 
 
     <!-- Add this property to export the Table as a JSON string -->

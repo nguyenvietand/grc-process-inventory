@@ -188,7 +188,7 @@ export default function RiskNode(props) {
               )}
               <Typography
                 variant="body2"
-                onClick={() => { if (data.onNodeAction) data.onNodeAction("risk", data.originalRiskId || data.RiskID || id, "info"); }}
+                onClick={() => { if (data.onNodeAction) data.onNodeAction("risk", data.originalRiskId || data.RiskID || id, "info", data.Index ?? data.index); }}
                 sx={(theme) => ({
                   color: "#2771c2",
                   fontWeight: 600,
@@ -205,7 +205,7 @@ export default function RiskNode(props) {
             {mode === 'edit' && (
               <Typography
                 variant="body2"
-                onClick={() => { if (data.onNodeAction) data.onNodeAction("risk", data.originalRiskId || data.RiskID || id, "edit"); }}
+                onClick={() => { if (data.onNodeAction) data.onNodeAction("risk", data.originalRiskId || data.RiskID || id, "edit", data.Index ?? data.index); }}
                 sx={(theme) => ({
                   color: "#2771c2",
                   fontWeight: 600,
