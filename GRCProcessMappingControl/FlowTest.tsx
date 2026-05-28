@@ -99,7 +99,7 @@ function buildFlowData(processData, rootData, riskData, controlData) {
             processId: process.id,
             status: nestedRisk.ProcessRiskStatus,
             riskObject: nestedRisk.RiskObject,
-            ProcessRiskMarker: nestedRisk.ProcessRiskMarker || "", // Lưu marker gốc vào mapping
+            ProcessRiskMarker: nestedRisk.ProcessRiskMarker || "", // Store original marker in mapping
           });
         });
       }
@@ -113,7 +113,7 @@ function buildFlowData(processData, rootData, riskData, controlData) {
         const mappedRisk = riskMapping[riskId][0];
         const riskObject = mappedRisk?.riskObject || {};
 
-        // Quét tìm Risk chính xác trong toàn bộ processData thay vì chỉ phần tử đầu tiên [0]
+        // Scan to find the exact Risk in all processData instead of just the first element [0]
         let nestedRiskFromProcess = null;
         for (const p of processData) {
           const found = p.risks?.find(r => r.RiskID === riskId);
@@ -359,11 +359,11 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
       const currentStatus = String(existingNode.data?.RiskControlStatus || existingNode.data?.status || "").toLowerCase();
       if (currentStatus === "retired") {
         setNodesRef.current((prev) => prev.map((n) => {
-          // Kéo control cũ (retired) vào lại risk -> Cứu sống chính nó
+          // Drag an old (retired) control back into risk -> Revive itself
           if (n.id === existingNode.id) {
             return { ...n, data: { ...n.data, RiskControlStatus: "Active", status: "Active", RiskControlMarker: "reactive" } };
           }
-          // Nếu Risk chứa nó cũng đang retired -> Cứu sống luôn thằng Risk
+          // If the Risk containing it is also retired -> Revive the Risk as well
           if (shouldReactivateRisk && n.id === parentId) {
             return { ...n, data: { ...n.data, processRiskStatus: "Active", status: "Active", ProcessRiskMarker: "reactive" } };
           }
@@ -386,7 +386,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
     setNodesRef.current((prev) => {
       let nextNodes = prev;
       if (shouldReactivateRisk) {
-        // Kéo control mới vào Risk đang retired -> Risk sống dậy thành "reactive"
+        // Drag a new control into a retired Risk -> Risk is revived as "reactive"
         nextNodes = nextNodes.map((n) => n.id === parentId ? { ...n, data: { ...n.data, processRiskStatus: "Active", status: "Active", ProcessRiskMarker: "reactive" } } : n);
       }
       return [
@@ -402,7 +402,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
             originalControlId: incomingControlId,
             RiskControlStatus: "Active",
             status: "Active",
-            RiskControlMarker: "add", // Thêm mới tinh từ Kanban
+            RiskControlMarker: "add", // Brand new from Kanban
             onDeleteNode: handleDeleteNodeRef.current,
             onEditNode: handleEditNodeRef.current,
             onNodeAction,
@@ -451,7 +451,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
     if (existingNode) {
       const currentStatus = String(existingNode.data?.processRiskStatus || existingNode.data?.status || "").toLowerCase();
       if (currentStatus === "retired") {
-        // Cứu sống một con Risk đã ẩn từ trước -> "reactive"
+        // Revive a previously hidden Risk -> "reactive"
         setNodesRef.current((prev) => prev.map((n) => n.id === existingNode.id ? { ...n, data: { ...n.data, processRiskStatus: "Active", status: "Active", ProcessRiskMarker: "reactive" } } : n));
         setEdgesRef.current((prev) => prev.map((e) => e.id === existingEdge.id ? { ...e, style: getProcessRiskEdgeStyle("Active") } : e));
         return;
@@ -476,7 +476,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
             originalRiskId: incomingRiskId,
             processRiskStatus: "Active",
             status: "Active",
-            ProcessRiskMarker: "add", // Tạo mới tinh -> "add"
+            ProcessRiskMarker: "add", // Brand new -> "add"
             onDropControl: handleDropControl,
             onDeleteNode: handleDeleteNodeRef.current,
             onEditNode: handleEditNodeRef.current,
@@ -558,7 +558,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
             originalControlId: incomingControlId,
             RiskControlStatus: "Active",
             status: "Active",
-            RiskControlMarker: "add", // Thêm mới tinh -> "add"
+            RiskControlMarker: "add", // Brand new -> "add"
             onDeleteNode: handleDeleteNodeRef.current,
             onEditNode: handleEditNodeRef.current,
             onNodeAction,
@@ -605,7 +605,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
     if (existingNode) {
       const currentStatus = String(existingNode.data?.processRiskStatus || existingNode.data?.status || "").toLowerCase();
       if (currentStatus === "retired") {
-        // Cứu sống Risk cũ -> "reactive"
+        // Revive old Risk -> "reactive"
         setNodesRef.current((prev) => prev.map((n) => n.id === existingNode.id ? { ...n, data: { ...n.data, processRiskStatus: "Active", status: "Active", ProcessRiskMarker: "reactive" } } : n));
         setEdgesRef.current((prev) => prev.map((e) => e.id === existingEdge.id ? { ...e, style: getProcessRiskEdgeStyle("Active") } : e));
         kanbanRef.current?.removeItem(riskItem.id);
@@ -629,7 +629,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
           originalRiskId: incomingRiskId,
           processRiskStatus: "Active",
           status: "Active",
-          ProcessRiskMarker: "add", // Thả mới tinh từ Kanban -> "add"
+          ProcessRiskMarker: "add", // Brand new drop from Kanban -> "add"
           onDropControl: handleDropControl,
           onDeleteNode: handleDeleteNodeRef.current,
           onEditNode: handleEditNodeRef.current,
@@ -789,7 +789,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
           const riskNode = nodeMap[e.target];
           const riskId = riskNode.data.RiskID || riskNode.data.originalRiskId || riskNode.id;
 
-          // MÓC TRỰC TIẾP TỪ DATA CỦA RISK NODE RA
+          // DIRECTLY EXTRACT FROM RISK NODE DATA
           const processRiskMarker = riskNode.data.ProcessRiskMarker || "";
 
           const controlEdges = edges.filter(ed => ed.source === riskNode.id && nodeMap[ed.target]?.type === 'controlNode');
@@ -819,7 +819,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
               const ctrl = nodeMap[ce.target];
               const controlId = ctrl.data.ControlID || ctrl.data.originalControlId || ctrl.id || "";
 
-              // MÓC TRỰC TIẾP TỪ DATA CỦA CONTROL NODE RA
+              // DIRECTLY EXTRACT FROM CONTROL NODE DATA
               const riskControlMarker = ctrl.data.RiskControlMarker || "";
 
               rows.push({

@@ -6,6 +6,11 @@ import { Card, CardContent, Typography, Box, Divider, Button } from "@mui/materi
 import AddItemDialog from "./AddItemDialog";
 
 export default function RiskNode(props) {
+    // Helper to truncate description
+    function truncateDescription(desc) {
+      if (!desc) return '';
+      return desc.length > 150 ? desc.slice(0, 150) + '...' : desc;
+    }
   const { id, data, positionAbsoluteX, positionAbsoluteY } = props;
   const mode = data.mode;
   const [isDragOver, setIsDragOver] = React.useState(false);
@@ -107,7 +112,7 @@ export default function RiskNode(props) {
               fontFamily: theme.typography.fontFamily
             })}
           >
-            {data.description}
+            {truncateDescription(data.description)}
           </Typography>
 
           <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 1 }}>

@@ -7,6 +7,11 @@ import NodeFooter from "./NodeFooter";
 import AddItemDialog from "./AddItemDialog";
 
 export default function ControlNode(props) {
+    // Helper to truncate description
+    function truncateDescription(desc) {
+      if (!desc) return '';
+      return desc.length > 150 ? desc.slice(0, 150) + '...' : desc;
+    }
   const { id, data } = props;
   // Always get mode from data (as passed from FlowBoard)
   const mode = data.mode;
@@ -52,7 +57,7 @@ export default function ControlNode(props) {
               fontFamily: theme.typography.fontFamily,
             })}
           >
-            {data.description}
+            {truncateDescription(data.description)}
           </Typography>
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
             <Box>
