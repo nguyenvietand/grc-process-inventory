@@ -221,6 +221,7 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
                     processMap[processId].risks[riskId] = {
                         RiskID: riskId,
                         ProcessRiskStatus: getDatasetValue(processDataset, record, 'Process_ProcessRiskStatus'),
+                        ProcessRiskMarker: getDatasetValue(processDataset, record, 'ProcessRiskMarker'),
                         RiskObject: {
                             RiskShortName: getDatasetValue(processDataset, record, 'Process_RiskShortName'),
                             Description: getDatasetValue(processDataset, record, 'Process_RiskDescription'),
@@ -239,6 +240,7 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
                         processMap[processId].risks[riskId].Controls.push({
                             ControlID: controlId,
                             RiskControlStatus: getDatasetValue(processDataset, record, 'Process_RiskControlStatus'),
+                            RiskControlMarker: getDatasetValue(processDataset, record, 'RiskControlMarker'),
                             ControlName: getDatasetValue(processDataset, record, 'Process_ControlName'),
                             ControlDesc: getDatasetValue(processDataset, record, 'Process_ControlDesc'),
                             ControlCategory: getDatasetValue(processDataset, record, 'Process_ControlCategory'),
@@ -280,6 +282,7 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
 
         // Use a key to force remount ChartDemoApp if reset is triggered
         const chartKey = forceReset ? `reset-${Date.now()}` : undefined;
+
         this.root.render(
             React.createElement(
                 'div',
