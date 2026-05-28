@@ -148,7 +148,12 @@ function DraggableItem({ item, nodeType, color, onDelete }) {
             fontSize: "0.75rem",
             lineHeight: 1.4,
             mb: nodeType === "controlNode" ? 1.5 : 0,
-            fontFamily: "inherit"
+            fontFamily: "inherit",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            display: "-webkit-box",
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: "vertical",
           }}
         >
           {item.description}

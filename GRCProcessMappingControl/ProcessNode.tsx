@@ -57,7 +57,6 @@ export default function ProcessNode(props) {
         onDragLeave={handleNodeDragLeave}
         onDrop={handleNodeDrop}
         sx={{
-          //minWidth: 240,
           width: 400,
           borderRadius: "10px",
           border: isDragOver ? "2px dashed #d32f2f" : "1px solid #B4D6FA80",

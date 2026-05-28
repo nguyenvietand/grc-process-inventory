@@ -6,11 +6,6 @@ import { Card, CardContent, Typography, Box, Divider, Button } from "@mui/materi
 import AddItemDialog from "./AddItemDialog";
 
 export default function RiskNode(props) {
-    // Helper to truncate description
-    function truncateDescription(desc) {
-      if (!desc) return '';
-      return desc.length > 150 ? desc.slice(0, 150) + '...' : desc;
-    }
   const { id, data, positionAbsoluteX, positionAbsoluteY } = props;
   const mode = data.mode;
   const [isDragOver, setIsDragOver] = React.useState(false);
@@ -62,9 +57,8 @@ export default function RiskNode(props) {
         onDragLeave={handleNodeDragLeave}
         onDrop={handleNodeDrop}
         sx={{
-          //minWidth: 280,
-          //maxWidth: 320,
           width: 400,
+          height: 250,
           borderRadius: "10px",
           border: isDragOver ? "2px dashed #1976d2" : "1px solid #FFC9C9",
           backgroundColor: isDragOver ? "#f0f7ff" : "#FFF7F7",
@@ -89,8 +83,10 @@ export default function RiskNode(props) {
             Risk
           </Box>
 
+
           <Typography
             variant="h6"
+            noWrap
             sx={(theme) => ({
               fontWeight: 700,
               fontSize: "1.1rem",
@@ -109,10 +105,17 @@ export default function RiskNode(props) {
               color: "#555",
               mb: 2,
               fontSize: "0.9rem",
-              fontFamily: theme.typography.fontFamily
+              fontFamily: theme.typography.fontFamily,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              display: "-webkit-box",
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: "vertical",
+              height: "4.2em",
+              lineHeight: 1.4,
             })}
           >
-            {truncateDescription(data.description)}
+            {data.description}
           </Typography>
 
           <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 1 }}>
@@ -169,10 +172,10 @@ export default function RiskNode(props) {
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
               {mode === 'edit' && (
                 <Typography
-                  variant="body2"
                   onClick={() => {
                     if (data.onOpenPanel) data.onOpenPanel("controlNode");
                   }}
+                  variant="body2"
                   sx={(theme) => ({
                     color: "#1976d2",
                     fontWeight: 600,

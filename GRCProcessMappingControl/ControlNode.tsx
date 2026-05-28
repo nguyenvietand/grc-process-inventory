@@ -7,11 +7,6 @@ import NodeFooter from "./NodeFooter";
 import AddItemDialog from "./AddItemDialog";
 
 export default function ControlNode(props) {
-    // Helper to truncate description
-    function truncateDescription(desc) {
-      if (!desc) return '';
-      return desc.length > 150 ? desc.slice(0, 150) + '...' : desc;
-    }
   const { id, data } = props;
   // Always get mode from data (as passed from FlowBoard)
   const mode = data.mode;
@@ -29,6 +24,7 @@ export default function ControlNode(props) {
           //minWidth: 320,
           //maxWidth: 320,
           width: 400,
+          height: 250,
           borderRadius: "10px",
           border: "1px solid #e5eefd",
           backgroundColor: "#F7FAFF",
@@ -36,6 +32,7 @@ export default function ControlNode(props) {
         <CardContent sx={{ p: "20px", pb: "16px", textAlign: "left" }}>
           <Typography
             variant="h6"
+            noWrap
             sx={(theme) => ({
               fontWeight: 700,
               fontSize: "1.1rem",
@@ -55,9 +52,16 @@ export default function ControlNode(props) {
               mb: 1,
               fontSize: "0.9rem",
               fontFamily: theme.typography.fontFamily,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              display: "-webkit-box",
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: "vertical",
+              height: "4.2em", // 3 dòng, mỗi dòng 1.4em
+              lineHeight: 1.4,
             })}
           >
-            {truncateDescription(data.description)}
+            {data.description}
           </Typography>
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
             <Box>
