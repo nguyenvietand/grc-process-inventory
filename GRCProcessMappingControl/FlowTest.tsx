@@ -892,7 +892,6 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
     processNodes.forEach(proc => {
       const riskEdges = edges.filter(e => e.source === proc.id && nodeMap[e.target]?.type === 'riskNode');
 
-      // 1. Gỡ Index ra khỏi processFields dùng chung
       const processFields = {
         CoreProcessID: proc.id,
         HeraclesProcessActivityID: proc.data.HeraclesProcessActivityID || "",
@@ -903,10 +902,9 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
       };
 
       if (riskEdges.length === 0) {
-        // Trưởng hợp 1: Node Process đứng trơ trọi
         rows.push({
           ...processFields,
-          Index: proc.data.Index || "", // Dùng Index của Process
+          Index: proc.data.Index || "",
           RiskID: "", ProcessRiskStatus: "", RiskShortName: "", RiskDescription: "", RiskLikelihood: "", RiskImpact: "", RiskStatus: "",
           ControlID: "", RiskControlStatus: "", ControlName: "", ControlDesc: "", ControlCategory: "", ControlOwner: "", ControlStatus: "",
           ProcessRiskMarker: "",
@@ -920,10 +918,9 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
           const controlEdges = edges.filter(ed => ed.source === riskNode.id && nodeMap[ed.target]?.type === 'controlNode');
 
           if (controlEdges.length === 0) {
-            // Trường hợp 2: Node Process -> Node Risk (Không có Control)
             rows.push({
               ...processFields,
-              Index: riskNode.data.Index || proc.data.Index || "", // Ưu tiên dùng Index của Risk
+              Index: riskNode.data.Index || proc.data.Index || "", 
               RiskID: riskId,
               ProcessRiskStatus: riskNode.data.processRiskStatus || riskNode.data.status || "",
               RiskShortName: riskNode.data.name || riskNode.data.title || "",
@@ -942,7 +939,6 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
               RiskControlMarker: "",
             });
           } else {
-            // Trường hợp 3: Node Process -> Node Risk -> Node Control (Đầy đủ 3 cấp)
             controlEdges.forEach(ce => {
               const ctrl = nodeMap[ce.target];
               const controlId = ctrl.data.ControlID || ctrl.data.originalControlId || ctrl.id || "";
@@ -950,7 +946,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
 
               rows.push({
                 ...processFields,
-                Index: ctrl.data.Index || riskNode.data.Index || proc.data.Index || "", // 🔥 CHÍ MẠNG: Ưu tiên chốt bằng Index của Control
+                Index: ctrl.data.Index || riskNode.data.Index || proc.data.Index || "",
                 RiskID: riskId,
                 ProcessRiskStatus: riskNode.data.processRiskStatus || riskNode.data.status || "",
                 RiskShortName: riskNode.data.name || riskNode.data.title || "",
