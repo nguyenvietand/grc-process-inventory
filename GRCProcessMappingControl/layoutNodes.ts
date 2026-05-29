@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
-const COL_X = { directControl: -450, processNode: 0, riskNode: 450, controlNode: 900 };
+const COL_X = { directControl: -700, processNode: 0, riskNode: 700, controlNode: 1400 };
 const ROW_GAP = 280;
 
 export function layoutNodes(nodes, edges) {

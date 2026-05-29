@@ -8,9 +8,8 @@ import '@xyflow/react/dist/style.css';
 import createDynamicTheme from './createDynamicTheme';
 import { FlowBoard } from './FlowTest';
 
-export default function ChartDemoApp({ processItems, controlItems, riskItems, processDatasetFlat, onNodeAction, onProcessDatasetChange, fontFamily, mode }) {
+export default function ChartDemoApp({ processItems, controlItems, riskItems, processDatasetFlat, onNodeAction, onProcessDatasetChange, fontFamily, mode, offsetX, offsetY, zoom }) {
   const theme = createDynamicTheme(fontFamily);
-  
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -23,6 +22,9 @@ export default function ChartDemoApp({ processItems, controlItems, riskItems, pr
           onNodeAction={onNodeAction}
           onProcessDatasetChange={onProcessDatasetChange}
           mode={mode}
+          offsetX={offsetX}
+          offsetY={offsetY}
+          zoom={zoom}
         />
       </ReactFlowProvider>
     </ThemeProvider>

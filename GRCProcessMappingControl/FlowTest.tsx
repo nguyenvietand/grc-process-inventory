@@ -319,7 +319,7 @@ function buildFlowData(processData, processDatasetFlat, rootData, riskData, cont
 }
 let idCounter = 100;
 
-function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, onNodeAction, onProcessDatasetChange, mode }) {
+function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, onNodeAction, onProcessDatasetChange, mode, offsetX = 1000, offsetY = 100, zoom = 0.5 }) {
   const [panelOpen, setPanelOpen] = useState(false);
   const [panelFilter, setPanelFilter] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
@@ -1046,14 +1046,22 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
     [screenToFlowPosition, handleAddRisk, handleAddControl, handleDropRisk, handleDropControl, openPanel],
   );
 
+  const reactFlowInstance = useReactFlow();
   const resetflow = useCallback(() => {
     const resetNodes = layoutNodes(nodesWithCallbacks, initialData.edges);
     setNodes(resetNodes);
     setEdges(initialData.edges);
     nodesRef.current = resetNodes;
     edgesRef.current = initialData.edges;
-    setTimeout(() => fitView({ padding: 0.1 }), 50);
-  }, [nodesWithCallbacks, initialData.edges, fitView]);
+    setTimeout(() => {
+      const processNode = resetNodes.find((n) => n.type === "processNode");
+      if (processNode) {
+        const nodeX = processNode.position.x;
+        const nodeY = processNode.position.y;
+        reactFlowInstance.setCenter(nodeX + 200+  offsetX, nodeY + 125 + offsetY, { zoom: zoom });
+      }
+    }, 50);
+  }, [nodesWithCallbacks, initialData.edges, reactFlowInstance, offsetX, offsetY, zoom]);
 
   const relayout = useCallback(() => {
     setTimeout(() => {
@@ -1075,10 +1083,19 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
         onEdgesChange={onEdgesChange}
         onDragOver={onDragOver}
         onDrop={onDrop}
-        fitView
+        //fitView
         minZoom={0.1}
         maxZoom={4}
         proOptions={{ hideAttribution: true }}
+        onInit={(reactFlowInstance) => {
+          const nodes = reactFlowInstance.getNodes();
+          const processNode = nodes.find(n => n.type === 'processNode');
+          if (processNode) {
+            const nodeX = processNode.position.x;
+            const nodeY = processNode.position.y;
+            reactFlowInstance.setCenter(nodeX + 200+  offsetX, nodeY + 125 + offsetY, { zoom: zoom });
+          }
+        }}
       >
         <Background color="#e0e0e0" />
         <Controls

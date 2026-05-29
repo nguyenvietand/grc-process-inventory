@@ -284,6 +284,15 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
         // Use a key to force remount ChartDemoApp if reset is triggered
         const chartKey = forceReset ? `reset-${Date.now()}` : undefined;
 
+        // Get offsetX, offsetY, zoom from input property
+        const getValidOrDefault = (val, def) => {
+            if (val === undefined || val === null || val === "" || Number(val) === 0) return def;
+            return Number(val);
+        };
+        const offsetX = getValidOrDefault(this.context.parameters.offsetX?.raw, 800);
+        const offsetY = getValidOrDefault(this.context.parameters.offsetY?.raw, 0);
+        const zoom = getValidOrDefault(this.context.parameters.zoom?.raw, 0.5);
+
         this.root.render(
             React.createElement(
                 'div',
@@ -297,7 +306,20 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
                         left: 0,
                     },
                 },
-                React.createElement(ChartDemoApp, { processItems, controlItems, riskItems, processDatasetFlat, onNodeAction, onProcessDatasetChange, fontFamily, mode, key: chartKey }),
+                React.createElement(ChartDemoApp, {
+                    processItems,
+                    controlItems,
+                    riskItems,
+                    processDatasetFlat,
+                    onNodeAction,
+                    onProcessDatasetChange,
+                    fontFamily,
+                    mode,
+                    offsetX,
+                    offsetY,
+                    zoom,
+                    key: chartKey
+                }),
             ),
         );
 

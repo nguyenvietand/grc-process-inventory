@@ -17,6 +17,11 @@
     <!-- Reset trigger property -->
     <property name="resetKey" display-name-key="ResetKey" description-key="ResetKey_Desc" usage="input" of-type="Whole.None" required="false" />
 
+    <!-- Custom input properties for view control -->
+    <property name="offsetX" display-name-key="OffsetX" description-key="OffsetX_Desc" usage="input" of-type="Whole.None" required="false" />
+    <property name="offsetY" display-name-key="OffsetY" description-key="OffsetY_Desc" usage="input" of-type="Whole.None" required="false" />
+    <property name="zoom" display-name-key="Zoom" description-key="Zoom_Desc" usage="input" of-type="Decimal" required="false" />
+
     <property name="Type" display-name-key="Type" description-key="Type_Desc" usage="output" of-type="SingleLine.Text" />
     <property name="ID" display-name-key="ID" description-key="ID_Desc" usage="output" of-type="SingleLine.Text" />
     <property name="Action" display-name-key="Action" description-key="Action_Desc" usage="output" of-type="SingleLine.Text" />
