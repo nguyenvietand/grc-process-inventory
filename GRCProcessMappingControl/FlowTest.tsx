@@ -30,6 +30,14 @@ const nodeTypes = {
   controlNode: ControlNode,
 };
 
+function generateGUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 function getProcessRiskEdgeStyle(processRiskStatus) {
   const normalizedStatus = String(processRiskStatus || "").toLowerCase();
   if (normalizedStatus === "retired") {
@@ -469,6 +477,19 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
 
     const newId = `control-drop-${++idCounter}`;
 
+    let newControlIndex = generateGUID(); 
+    if (parentNode && parentNode.type === "riskNode") {
+        const hasExistingControls = edgesRef.current.some(e => {
+            if (e.source !== parentId) return false;
+            const targetNode = currentNodes.find(n => n.id === e.target);
+            return targetNode && targetNode.type === "controlNode";
+        });
+
+        if (!hasExistingControls && parentNode.data?.Index) {
+            newControlIndex = parentNode.data.Index;
+        }
+    }
+
     setNodesRef.current((prev) => {
       let nextNodes = prev;
       if (shouldReactivateRisk) {
@@ -486,6 +507,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
             title: controlItem.name,
             _id: newId,
             originalControlId: incomingControlId,
+            Index: newControlIndex,
             RiskControlStatus: "Active",
             status: "Active",
             RiskControlMarker: "add", // Brand new from Kanban
@@ -560,6 +582,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
             title: riskData.name,
             _id: newId,
             originalRiskId: incomingRiskId,
+            Index: generateGUID(),
             processRiskStatus: "Active",
             status: "Active",
             ProcessRiskMarker: "add", // Brand new -> "add"
@@ -625,6 +648,19 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
 
     const newId = `control-new-${++idCounter}`;
 
+    let newControlIndex = generateGUID();
+    if (parentNode && parentNode.type === "riskNode") {
+        const hasExistingControls = edgesRef.current.some(e => {
+            if (e.source !== parentRootId) return false;
+            const targetNode = currentNodes.find(n => n.id === e.target);
+            return targetNode && targetNode.type === "controlNode";
+        });
+
+        if (!hasExistingControls && parentNode.data?.Index) {
+            newControlIndex = parentNode.data.Index;
+        }
+    }
+
     setNodesRef.current((prev) => {
       let nextNodes = prev;
       if (shouldReactivateRisk) {
@@ -642,6 +678,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
             title: controlData.name,
             _id: newId,
             originalControlId: incomingControlId,
+            Index: newControlIndex,
             RiskControlStatus: "Active",
             status: "Active",
             RiskControlMarker: "add", // Brand new -> "add"
@@ -713,6 +750,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
           title: riskItem.name,
           _id: newId,
           originalRiskId: incomingRiskId,
+          Index: generateGUID(),
           processRiskStatus: "Active",
           status: "Active",
           ProcessRiskMarker: "add", // Brand new drop from Kanban -> "add"
@@ -846,16 +884,17 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
   const [edges, setEdges] = useState(initialData.edges);
 
   function flattenProcessDatasetFromGraph(nodes, edges) {
+    console.log("Flattening dataset from graph with nodes:", nodes);
     const nodeMap = Object.fromEntries(nodes.map(n => [n.id, n]));
     const processNodes = nodes.filter(n => n.type === 'processNode');
     const rows = [];
 
     processNodes.forEach(proc => {
       const riskEdges = edges.filter(e => e.source === proc.id && nodeMap[e.target]?.type === 'riskNode');
+
       const processFields = {
         CoreProcessID: proc.id,
         HeraclesProcessActivityID: proc.data.HeraclesProcessActivityID || "",
-        Index: proc.data.Index || "",
         Owner: proc.data.owner || "",
         ProcessActivityName: proc.data.title || proc.data.ProcessActivityName || "",
         ProcessStatus: proc.data.ProcessStatus || "",
@@ -865,6 +904,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
       if (riskEdges.length === 0) {
         rows.push({
           ...processFields,
+          Index: proc.data.Index || "",
           RiskID: "", ProcessRiskStatus: "", RiskShortName: "", RiskDescription: "", RiskLikelihood: "", RiskImpact: "", RiskStatus: "",
           ControlID: "", RiskControlStatus: "", ControlName: "", ControlDesc: "", ControlCategory: "", ControlOwner: "", ControlStatus: "",
           ProcessRiskMarker: "",
@@ -874,15 +914,13 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
         riskEdges.forEach(e => {
           const riskNode = nodeMap[e.target];
           const riskId = riskNode.data.RiskID || riskNode.data.originalRiskId || riskNode.id;
-
-          // DIRECTLY EXTRACT FROM RISK NODE DATA
           const processRiskMarker = riskNode.data.ProcessRiskMarker || "";
-
           const controlEdges = edges.filter(ed => ed.source === riskNode.id && nodeMap[ed.target]?.type === 'controlNode');
 
           if (controlEdges.length === 0) {
             rows.push({
               ...processFields,
+              Index: riskNode.data.Index || proc.data.Index || "", 
               RiskID: riskId,
               ProcessRiskStatus: riskNode.data.processRiskStatus || riskNode.data.status || "",
               RiskShortName: riskNode.data.name || riskNode.data.title || "",
@@ -904,12 +942,11 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
             controlEdges.forEach(ce => {
               const ctrl = nodeMap[ce.target];
               const controlId = ctrl.data.ControlID || ctrl.data.originalControlId || ctrl.id || "";
-
-              // DIRECTLY EXTRACT FROM CONTROL NODE DATA
               const riskControlMarker = ctrl.data.RiskControlMarker || "";
 
               rows.push({
                 ...processFields,
+                Index: ctrl.data.Index || riskNode.data.Index || proc.data.Index || "",
                 RiskID: riskId,
                 ProcessRiskStatus: riskNode.data.processRiskStatus || riskNode.data.status || "",
                 RiskShortName: riskNode.data.name || riskNode.data.title || "",
@@ -1058,7 +1095,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
       if (processNode) {
         const nodeX = processNode.position.x;
         const nodeY = processNode.position.y;
-        reactFlowInstance.setCenter(nodeX + 200+  offsetX, nodeY + 125 + offsetY, { zoom: zoom });
+        reactFlowInstance.setCenter(nodeX + 200 + offsetX, nodeY + 125 + offsetY, { zoom: zoom });
       }
     }, 50);
   }, [nodesWithCallbacks, initialData.edges, reactFlowInstance, offsetX, offsetY, zoom]);
@@ -1093,7 +1130,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
           if (processNode) {
             const nodeX = processNode.position.x;
             const nodeY = processNode.position.y;
-            reactFlowInstance.setCenter(nodeX + 200+  offsetX, nodeY + 125 + offsetY, { zoom: zoom });
+            reactFlowInstance.setCenter(nodeX + 200 + offsetX, nodeY + 125 + offsetY, { zoom: zoom });
           }
         }}
       >
