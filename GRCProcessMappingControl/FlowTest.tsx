@@ -30,14 +30,6 @@ const nodeTypes = {
   controlNode: ControlNode,
 };
 
-function generateGUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-}
-
 function getProcessRiskEdgeStyle(processRiskStatus) {
   const normalizedStatus = String(processRiskStatus || "").toLowerCase();
   if (normalizedStatus === "retired") {
@@ -477,7 +469,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
 
     const newId = `control-drop-${++idCounter}`;
 
-    let newControlIndex = generateGUID(); 
+    let newControlIndex = crypto.randomUUID(); 
     if (parentNode && parentNode.type === "riskNode") {
         const hasExistingControls = edgesRef.current.some(e => {
             if (e.source !== parentId) return false;
@@ -582,7 +574,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
             title: riskData.name,
             _id: newId,
             originalRiskId: incomingRiskId,
-            Index: generateGUID(),
+            Index: crypto.randomUUID(),
             processRiskStatus: "Active",
             status: "Active",
             ProcessRiskMarker: "add", // Brand new -> "add"
@@ -648,7 +640,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
 
     const newId = `control-new-${++idCounter}`;
 
-    let newControlIndex = generateGUID();
+    let newControlIndex = crypto.randomUUID();
     if (parentNode && parentNode.type === "riskNode") {
         const hasExistingControls = edgesRef.current.some(e => {
             if (e.source !== parentRootId) return false;
@@ -750,7 +742,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
           title: riskItem.name,
           _id: newId,
           originalRiskId: incomingRiskId,
-          Index: generateGUID(),
+          Index: crypto.randomUUID(),
           processRiskStatus: "Active",
           status: "Active",
           ProcessRiskMarker: "add", // Brand new drop from Kanban -> "add"
