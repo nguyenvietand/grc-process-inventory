@@ -5,10 +5,11 @@ import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import { ReactFlowProvider } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import theme from './theme';
+import createDynamicTheme from './createDynamicTheme';
 import { FlowBoard } from './FlowTest';
 
-export default function ChartDemoApp({ processItems, controlItems, riskItems, processDatasetFlat, onNodeAction, onProcessDatasetChange }) {
+export default function ChartDemoApp({ processItems, controlItems, riskItems, processDatasetFlat, onNodeAction, onProcessDatasetChange, fontFamily, mode, offsetX, offsetY, zoom }) {
+  const theme = createDynamicTheme(fontFamily);
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -20,6 +21,10 @@ export default function ChartDemoApp({ processItems, controlItems, riskItems, pr
           processDatasetFlat={processDatasetFlat}
           onNodeAction={onNodeAction}
           onProcessDatasetChange={onProcessDatasetChange}
+          mode={mode}
+          offsetX={offsetX}
+          offsetY={offsetY}
+          zoom={zoom}
         />
       </ReactFlowProvider>
     </ThemeProvider>

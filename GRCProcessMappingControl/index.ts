@@ -11,6 +11,7 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
     private notifyOutputChanged: (() => void) | null = null;
     private root: Root | null = null;
     private context: ComponentFramework.Context<IInputs>;
+    private lastResetKey: number | undefined;
     private container: HTMLDivElement;
 
     public init(
@@ -29,6 +30,14 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
 
     public updateView(context: ComponentFramework.Context<IInputs>): void {
         this.context = context;
+        // Check if resetKey changed
+        const currentResetKey = context.parameters.resetKey?.raw;
+        if (currentResetKey !== undefined && currentResetKey !== this.lastResetKey) {
+            this.lastResetKey = currentResetKey;
+            // Trigger layout reset by forcing rerender with a new key
+            this.render(true);
+            return;
+        }
         this.render();
     }
 
@@ -41,11 +50,16 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
         this.root = null;
     }
 
-    private render(): void {
+    private render(forceReset = false): void {
         // Always call notifyOutputChanged to update output property
-        const onNodeAction = (Type: string, ID: string, Action: string) => {
-            this.outputAction = { ...this.outputAction, Type, ID, Action };
+        // Add Index to outputAction (for output property)
+        const onNodeAction = (Type: string, ID: string, Action: string, Index?: string | number) => {
+            this.outputAction = { ...this.outputAction, Type, ID, Action, Index };
             if (this.notifyOutputChanged) this.notifyOutputChanged();
+            // Trigger custom OnButtonSelect event for Info/Edit
+            if (this.context && this.context.events && typeof this.context.events.OnButtonSelect === 'function' && (Action === 'info' || Action === 'edit' || Action === 'create')) {
+                this.context.events.OnButtonSelect();
+            }
         };
 
         // Callback to update ProcessDatasetOutput when flow changes
@@ -113,11 +127,12 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
 
         let riskItems:
             | {
-                  id: string;
-                  name: string;
-                  description: string;
-                  parentId: string;
-              }[]
+                id: string;
+                name: string;
+                description: string;
+                parentId: string;
+                status?: string;
+            }[]
             | undefined;
         if (risksDataset && !risksDataset.loading && risksDataset.sortedRecordIds.length > 0) {
             riskItems = risksDataset.sortedRecordIds.map((id) => {
@@ -127,37 +142,38 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
                     name: getDatasetValue(risksDataset, record, 'Risks_RiskName'),
                     description: getDatasetValue(risksDataset, record, 'Risks_RiskDesc'),
                     parentId: getDatasetValue(risksDataset, record, 'Risks_ProcessID'),
+                    status: getDatasetValue(risksDataset, record, 'Risks_RiskStatus'),
                 };
             });
         }
 
         let processItems:
             | {
-                  id: string;
-                  title: string;
-                  department: string;
-                  owner: string;
-                  risks: {
-                      RiskID: string;
-                      ProcessRiskStatus: string;
-                      RiskObject?: {
-                          RiskShortName: string;
-                          Description: string;
-                          Likelihood: string;
-                          Impact: string;
-                          RiskStatus: string;
-                      };
-                      Controls: {
-                          ControlID: string;
-                          RiskControlStatus: string;
-                          ControlName: string;
-                          ControlDesc: string;
-                          ControlCategory: string;
-                          ControlOwner: string;
-                          ControlStatus: string;
-                      }[];
-                  }[];
-              }[]
+                id: string;
+                title: string;
+                department: string;
+                owner: string;
+                risks: {
+                    RiskID: string;
+                    ProcessRiskStatus: string;
+                    RiskObject?: {
+                        RiskShortName: string;
+                        Description: string;
+                        Likelihood: string;
+                        Impact: string;
+                        RiskStatus: string;
+                    };
+                    Controls: {
+                        ControlID: string;
+                        RiskControlStatus: string;
+                        ControlName: string;
+                        ControlDesc: string;
+                        ControlCategory: string;
+                        ControlOwner: string;
+                        ControlStatus: string;
+                    }[];
+                }[];
+            }[]
             | undefined;
         if (processDataset && !processDataset.loading && processDataset.sortedRecordIds.length > 0) {
             // Each row = 1 Process → Risk → Control relationship (flat)
@@ -206,6 +222,7 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
                     processMap[processId].risks[riskId] = {
                         RiskID: riskId,
                         ProcessRiskStatus: getDatasetValue(processDataset, record, 'Process_ProcessRiskStatus'),
+                        ProcessRiskMarker: getDatasetValue(processDataset, record, 'ProcessRiskMarker'),
                         RiskObject: {
                             RiskShortName: getDatasetValue(processDataset, record, 'Process_RiskShortName'),
                             Description: getDatasetValue(processDataset, record, 'Process_RiskDescription'),
@@ -224,6 +241,7 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
                         processMap[processId].risks[riskId].Controls.push({
                             ControlID: controlId,
                             RiskControlStatus: getDatasetValue(processDataset, record, 'Process_RiskControlStatus'),
+                            RiskControlMarker: getDatasetValue(processDataset, record, 'RiskControlMarker'),
                             ControlName: getDatasetValue(processDataset, record, 'Process_ControlName'),
                             ControlDesc: getDatasetValue(processDataset, record, 'Process_ControlDesc'),
                             ControlCategory: getDatasetValue(processDataset, record, 'Process_ControlCategory'),
@@ -253,6 +271,28 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
         this.container.style.position = 'relative';
         this.container.style.display = 'block';
 
+        const fontFamily = this.context.parameters.fonts?.raw || undefined;
+        // Use Power Apps displayMode for mode ("edit" or "view")
+        // const mode = this.context.mode.displayMode;
+        //const mode = "edit";
+
+        let mode = "edit";
+        if (this.context.mode.isControlDisabled) {
+            mode = "disabled";
+        }
+
+        // Use a key to force remount ChartDemoApp if reset is triggered
+        const chartKey = forceReset ? `reset-${Date.now()}` : undefined;
+
+        // Get offsetX, offsetY, zoom from input property
+        const getValidOrDefault = (val, def) => {
+            if (val === undefined || val === null || val === "" || Number(val) === 0) return def;
+            return Number(val);
+        };
+        const offsetX = getValidOrDefault(this.context.parameters.offsetX?.raw, 800);
+        const offsetY = getValidOrDefault(this.context.parameters.offsetY?.raw, 0);
+        const zoom = getValidOrDefault(this.context.parameters.zoom?.raw, 0.5);
+
         this.root.render(
             React.createElement(
                 'div',
@@ -266,8 +306,22 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
                         left: 0,
                     },
                 },
-                React.createElement(ChartDemoApp, { processItems, controlItems, riskItems, processDatasetFlat, onNodeAction, onProcessDatasetChange }),
+                React.createElement(ChartDemoApp, {
+                    processItems,
+                    controlItems,
+                    riskItems,
+                    processDatasetFlat,
+                    onNodeAction,
+                    onProcessDatasetChange,
+                    fontFamily,
+                    mode,
+                    offsetX,
+                    offsetY,
+                    zoom,
+                    key: chartKey
+                }),
             ),
         );
+
     }
 }

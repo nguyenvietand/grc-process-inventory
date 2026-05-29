@@ -12,12 +12,27 @@
     <external-service-usage enabled="false"></external-service-usage>
 
     <!-- Output properties for node actions -->
+    <!-- Font family input property for dynamic font -->
+    <property name="fonts" display-name-key="Fonts" description-key="Fonts_Desc" usage="input" of-type="SingleLine.Text" required="false" />
+    <!-- Reset trigger property -->
+    <property name="resetKey" display-name-key="ResetKey" description-key="ResetKey_Desc" usage="input" of-type="Whole.None" required="false" />
+
+    <!-- Custom input properties for view control -->
+    <property name="offsetX" display-name-key="OffsetX" description-key="OffsetX_Desc" usage="input" of-type="Whole.None" required="false" />
+    <property name="offsetY" display-name-key="OffsetY" description-key="OffsetY_Desc" usage="input" of-type="Whole.None" required="false" />
+    <property name="zoom" display-name-key="Zoom" description-key="Zoom_Desc" usage="input" of-type="Decimal" required="false" />
+
     <property name="Type" display-name-key="Type" description-key="Type_Desc" usage="output" of-type="SingleLine.Text" />
     <property name="ID" display-name-key="ID" description-key="ID_Desc" usage="output" of-type="SingleLine.Text" />
     <property name="Action" display-name-key="Action" description-key="Action_Desc" usage="output" of-type="SingleLine.Text" />
+    <property name="Index" display-name-key="Index" description-key="Index_Desc" usage="output" of-type="SingleLine.Text" />
+
 
     <!-- Add this property to export the Table as a JSON string -->
     <property name="ProcessDatasetOutput" display-name-key="ProcessDatasetOutput" description-key="Xuất dữ liệu ProcessDataset đã chỉnh sửa dưới dạng JSON" usage="output" of-type="Multiple" />
+
+    <!-- Custom event for button selection -->
+    <event name="OnButtonSelect" display-name-key="OnButtonSelect" description-key="OnButtonSelect_Desc" />
 
     
 
@@ -36,6 +51,7 @@
       <property-set name="Risks_RiskName" display-name-key="RiskName" of-type="SingleLine.Text" usage="bound" required="true" />
       <property-set name="Risks_RiskDesc" display-name-key="RiskDesc" of-type="SingleLine.Text" usage="bound" required="false" />
       <property-set name="Risks_ProcessID" display-name-key="ProcessID" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="Risks_RiskStatus" display-name-key="RiskStatus" of-type="SingleLine.Text" usage="bound" required="false" />
     </data-set>
 
     <data-set name="ProcessDataset" display-name-key="ProcessDataset">
@@ -63,6 +79,9 @@
       <property-set name="Process_ControlCategory" display-name-key="ControlCategory" of-type="SingleLine.Text" usage="bound" required="false" />
       <property-set name="Process_ControlOwner" display-name-key="ControlOwner" of-type="SingleLine.Text" usage="bound" required="false" />
       <property-set name="Process_ControlStatus" display-name-key="ControlStatus" of-type="SingleLine.Text" usage="bound" required="false" />
+      <!-- Marker fields for robust input/output preservation -->
+      <property-set name="ProcessRiskMarker" display-name-key="ProcessRiskMarker" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="RiskControlMarker" display-name-key="RiskControlMarker" of-type="SingleLine.Text" usage="bound" required="false" />
     </data-set>
 
     <resources>

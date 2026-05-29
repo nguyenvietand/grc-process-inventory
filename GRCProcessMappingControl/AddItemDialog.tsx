@@ -62,7 +62,9 @@ export default function AddItemDialog({ open, onClose, nodeType, onSubmit, initi
 
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>{initialData ? (isRisk ? "Edit Risk" : "Edit Control") : (isRisk ? "Add New Risk" : "Add New Control")}</DialogTitle>
+      <DialogTitle sx={(theme) => ({ fontFamily: theme.typography.fontFamily })}>
+        {initialData ? (isRisk ? "Edit Risk" : "Edit Control") : (isRisk ? "Add New Risk" : "Add New Control")}
+      </DialogTitle>
       <DialogContent sx={{ padding: "24px" }}>
         <form
           onSubmit={handleSubmit}
@@ -70,7 +72,7 @@ export default function AddItemDialog({ open, onClose, nodeType, onSubmit, initi
           style={{ display: "flex", flexDirection: "column", gap: "20px" }}
         >
           <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>
+            <Typography variant="subtitle2" sx={(theme) => ({ mb: 1, fontWeight: "bold", fontFamily: theme.typography.fontFamily })}>
               {isRisk ? "Risk Name *" : "Control Name *"}
             </Typography>
             <TextField
@@ -85,7 +87,7 @@ export default function AddItemDialog({ open, onClose, nodeType, onSubmit, initi
             />
           </Box>
           <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>
+            <Typography variant="subtitle2" sx={(theme) => ({ mb: 1, fontWeight: "bold", fontFamily: theme.typography.fontFamily })}>
               Description *
             </Typography>
             <TextField
@@ -102,7 +104,7 @@ export default function AddItemDialog({ open, onClose, nodeType, onSubmit, initi
           </Box>
           <Grid container spacing={2}>
             <Grid size={isRisk ? 6 : 4}>
-              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>
+              <Typography variant="subtitle2" sx={(theme) => ({ mb: 1, fontWeight: "bold", fontFamily: theme.typography.fontFamily })}>
                 Category *
               </Typography>
               <FormControl fullWidth>
@@ -112,20 +114,20 @@ export default function AddItemDialog({ open, onClose, nodeType, onSubmit, initi
                   value={form.category}
                   onChange={handleChange("category")}
                 >
-                  <MenuItem value="Security">Security</MenuItem>
-                  <MenuItem value="Operations">Operations</MenuItem>
-                  <MenuItem value="Compliance">Compliance</MenuItem>
-                  <MenuItem value="Financial">Financial</MenuItem>
+                  <MenuItem value="Security" sx={(theme) => ({ fontFamily: theme.typography.fontFamily })}>Security</MenuItem>
+                  <MenuItem value="Operations" sx={(theme) => ({ fontFamily: theme.typography.fontFamily })}>Operations</MenuItem>
+                  <MenuItem value="Compliance" sx={(theme) => ({ fontFamily: theme.typography.fontFamily })}>Compliance</MenuItem>
+                  <MenuItem value="Financial" sx={(theme) => ({ fontFamily: theme.typography.fontFamily })}>Financial</MenuItem>
                   {isRisk ? (
-                    <MenuItem value="Strategic">Strategic</MenuItem>
+                    <MenuItem value="Strategic" sx={(theme) => ({ fontFamily: theme.typography.fontFamily })}>Strategic</MenuItem>
                   ) : (
-                    <MenuItem value="HR">HR</MenuItem>
+                    <MenuItem value="HR" sx={(theme) => ({ fontFamily: theme.typography.fontFamily })}>HR</MenuItem>
                   )}
                 </Select>
               </FormControl>
             </Grid>
             <Grid size={isRisk ? 6 : 4}>
-              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>
+              <Typography variant="subtitle2" sx={(theme) => ({ mb: 1, fontWeight: "bold", fontFamily: theme.typography.fontFamily })}>
                 Owner *
               </Typography>
               <TextField
@@ -141,7 +143,7 @@ export default function AddItemDialog({ open, onClose, nodeType, onSubmit, initi
             {isRisk && (
               <>
                 <Grid size={4}>
-                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>
+                  <Typography variant="subtitle2" sx={(theme) => ({ mb: 1, fontWeight: "bold", fontFamily: theme.typography.fontFamily })}>
                     Likelihood *
                   </Typography>
                   <FormControl fullWidth>
@@ -151,14 +153,14 @@ export default function AddItemDialog({ open, onClose, nodeType, onSubmit, initi
                       value={form.likelihood}
                       onChange={handleChange("likelihood")}
                     >
-                      <MenuItem value="Low">Low</MenuItem>
-                      <MenuItem value="Medium">Medium</MenuItem>
-                      <MenuItem value="High">High</MenuItem>
+                      <MenuItem value="Low" sx={(theme) => ({ fontFamily: theme.typography.fontFamily })}>Low</MenuItem>
+                      <MenuItem value="Medium" sx={(theme) => ({ fontFamily: theme.typography.fontFamily })}>Medium</MenuItem>
+                      <MenuItem value="High" sx={(theme) => ({ fontFamily: theme.typography.fontFamily })}>High</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
                 <Grid size={4}>
-                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>
+                  <Typography variant="subtitle2" sx={(theme) => ({ mb: 1, fontWeight: "bold", fontFamily: theme.typography.fontFamily })}>
                     Impact *
                   </Typography>
                   <FormControl fullWidth>
@@ -168,16 +170,16 @@ export default function AddItemDialog({ open, onClose, nodeType, onSubmit, initi
                       value={form.impact}
                       onChange={handleChange("impact")}
                     >
-                      <MenuItem value="Low">Low</MenuItem>
-                      <MenuItem value="Medium">Medium</MenuItem>
-                      <MenuItem value="High">High</MenuItem>
+                      <MenuItem value="Low" sx={(theme) => ({ fontFamily: theme.typography.fontFamily })}>Low</MenuItem>
+                      <MenuItem value="Medium" sx={(theme) => ({ fontFamily: theme.typography.fontFamily })}>Medium</MenuItem>
+                      <MenuItem value="High" sx={(theme) => ({ fontFamily: theme.typography.fontFamily })}>High</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
               </>
             )}
             <Grid size={4}>
-              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>
+              <Typography variant="subtitle2" sx={(theme) => ({ mb: 1, fontWeight: "bold", fontFamily: theme.typography.fontFamily })}> 
                 Status *
               </Typography>
               <FormControl fullWidth>
@@ -189,14 +191,14 @@ export default function AddItemDialog({ open, onClose, nodeType, onSubmit, initi
                 >
                   {isRisk ? (
                     [
-                      <MenuItem key="open" value="Open">Open</MenuItem>,
-                      <MenuItem key="mitigated" value="Mitigated">Mitigated</MenuItem>,
-                      <MenuItem key="closed" value="Closed">Closed</MenuItem>,
+                      <MenuItem key="open" value="Open" sx={(theme) => ({ fontFamily: theme.typography.fontFamily })}>Open</MenuItem>,
+                      <MenuItem key="mitigated" value="Mitigated" sx={(theme) => ({ fontFamily: theme.typography.fontFamily })}>Mitigated</MenuItem>,
+                      <MenuItem key="closed" value="Closed" sx={(theme) => ({ fontFamily: theme.typography.fontFamily })}>Closed</MenuItem>,
                     ]
                   ) : (
                     [
-                      <MenuItem key="active" value="Active">Active</MenuItem>,
-                      <MenuItem key="inactive" value="Inactive">Inactive</MenuItem>,
+                      <MenuItem key="active" value="Active" sx={(theme) => ({ fontFamily: theme.typography.fontFamily })}>Active</MenuItem>,
+                      <MenuItem key="inactive" value="Inactive" sx={(theme) => ({ fontFamily: theme.typography.fontFamily })}>Inactive</MenuItem>,
                     ]
                   )}
                 </Select>
@@ -209,17 +211,18 @@ export default function AddItemDialog({ open, onClose, nodeType, onSubmit, initi
         <Button
           type="submit"
           form="add-item-form"
-          sx={{
+          sx={(theme) => ({
             flex: 1,
             color: "white",
             backgroundColor: isRisk ? "#e7000b" : "#1976d2",
-          }}
+            fontFamily: theme.typography.fontFamily,
+          })}
         >
           {initialData ? "Save changes" : "Submit request"}
         </Button>
         <Button
           onClick={onClose}
-          sx={{ flex: 1, color: "black", backgroundColor: "#f6f3f4" }}
+          sx={(theme) => ({ flex: 1, color: "black", backgroundColor: "#f6f3f4", fontFamily: theme.typography.fontFamily })}
         >
           Cancel
         </Button>
