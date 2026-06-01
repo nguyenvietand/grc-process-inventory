@@ -13,6 +13,7 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
     private context: ComponentFramework.Context<IInputs>;
     private lastResetKey: number | undefined;
     private container: HTMLDivElement;
+    private pendingPageLoad: Record<string, boolean> = {};
 
     public init(
         context: ComponentFramework.Context<IInputs>,
@@ -50,6 +51,27 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
         this.root = null;
     }
 
+    private requestNextPageIfNeeded(dataset: ComponentFramework.PropertyTypes.DataSet | undefined, key: string): void {
+        const paging = dataset?.paging as { hasNextPage?: boolean; loadNextPage?: () => void; setPageSize?: (size: number) => void } | undefined;
+        if (!dataset || !paging) return;
+
+        // Ask for larger page chunks so large datasets (e.g. 10k) finish loading faster.
+        if (!this.pendingPageLoad[`${key}:pageSize`]) {
+            this.pendingPageLoad[`${key}:pageSize`] = true;
+            paging.setPageSize?.(5000);
+        }
+
+        if (dataset.loading) return;
+        if (!paging.hasNextPage) {
+            this.pendingPageLoad[key] = false;
+            return;
+        }
+        if (this.pendingPageLoad[key]) return;
+
+        this.pendingPageLoad[key] = true;
+        paging.loadNextPage?.();
+    }
+
     private render(forceReset = false): void {
         // Always call notifyOutputChanged to update output property
         // Add Index to outputAction (for output property)
@@ -82,6 +104,17 @@ export class GRCProcessMappingControl implements ComponentFramework.StandardCont
         const controlsDataset = this.context.parameters.ControlsDataset;
         const risksDataset = this.context.parameters.RisksDataset;
         const processDataset = this.context.parameters.ProcessDataset;
+
+        // In Power Apps runtime, DataSet is paged and only first chunk is available initially.
+        // Keep requesting next pages so sortedRecordIds can contain the full result set.
+        this.requestNextPageIfNeeded(controlsDataset, 'ControlsDataset');
+        this.requestNextPageIfNeeded(risksDataset, 'RisksDataset');
+        this.requestNextPageIfNeeded(processDataset, 'ProcessDataset');
+
+        if (!controlsDataset?.loading) this.pendingPageLoad.ControlsDataset = false;
+        if (!risksDataset?.loading) this.pendingPageLoad.RisksDataset = false;
+        if (!processDataset?.loading) this.pendingPageLoad.ProcessDataset = false;
+
         const getDatasetValue = (
             dataset: ComponentFramework.PropertyTypes.DataSet,
             record: ComponentFramework.PropertyHelper.DataSetApi.EntityRecord,
