@@ -11,9 +11,12 @@ import {
   Stack,
   Slide,
   TextField,
+  InputAdornment,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AddItemDialog from "./AddItemDialog";
+
+const MAX_PANEL_ITEMS = 100;
 
 const kanbanColumns = [
   {
@@ -220,7 +223,13 @@ const KanbanPanel = forwardRef(function KanbanPanel({ open, onClose, filterType,
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogNodeType, setDialogNodeType] = useState(null);
   const [dialogColId, setDialogColId] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQueries, setSearchQueries] = useState({
+    processNode: "",
+    riskNode: "",
+    controlNode: "",
+  });
+  const activeNodeType = filterType || "riskNode";
+  const activeSearchQuery = searchQueries[activeNodeType] || "";
 
   React.useEffect(() => {
     if (!controlItems || controlItems.length === 0) return;
@@ -345,8 +354,29 @@ const KanbanPanel = forwardRef(function KanbanPanel({ open, onClose, filterType,
               size="small"
               fullWidth
               placeholder={filterType === "controlNode" ? "Search control" : "Search risk"}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={activeSearchQuery}
+              onChange={(e) => {
+                const nextValue = e.target.value;
+                setSearchQueries((prev) => ({ ...prev, [activeNodeType]: nextValue }));
+              }}
+              slotProps={{
+                input: {
+                  endAdornment: activeSearchQuery ? (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="Clear search"
+                        edge="end"
+                        size="small"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => setSearchQueries((prev) => ({ ...prev, [activeNodeType]: "" }))}
+                        sx={{ color: "#64748b" }}
+                      >
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    </InputAdornment>
+                  ) : null,
+                },
+              }}
               sx={(theme) => ({
                 "& .MuiOutlinedInput-root": {
                   bgcolor: "#f1f5f9",
@@ -375,11 +405,18 @@ const KanbanPanel = forwardRef(function KanbanPanel({ open, onClose, filterType,
           {/* List Cards */}
           <Box sx={{ flex: 1, overflow: "auto", pb: 2, px: 2 }}>
             {columns.filter((col) => !filterType || col.nodeType === filterType).map((col) => {
+              const colSearchQuery = (searchQueries[col.nodeType] || "").toLowerCase();
               const filteredItems = col.items.filter((item) =>
-                !searchQuery ||
-                (item.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (item.description || "").toLowerCase().includes(searchQuery.toLowerCase())
+                !colSearchQuery ||
+                (item.name || "").toLowerCase().includes(colSearchQuery) ||
+                (item.description || "").toLowerCase().includes(colSearchQuery)
               );
+              const sortedItems = [...filteredItems].sort((a, b) => {
+                const left = (a.name || a.title || a.id || "").trim();
+                const right = (b.name || b.title || b.id || "").trim();
+                return left.localeCompare(right, undefined, { sensitivity: "base" });
+              });
+              const visibleItems = sortedItems.slice(0, MAX_PANEL_ITEMS);
               return (
                 <Box key={col.id} sx={{ mb: 3, textAlign: "left" }}>
                   <Typography
@@ -406,7 +443,7 @@ const KanbanPanel = forwardRef(function KanbanPanel({ open, onClose, filterType,
                     {filterType === "controlNode" ? "+ Create new control" : "+ Create new risk"}
                   </Typography>
                   <Stack spacing={1}>
-                    {filteredItems.map((item) => (
+                    {visibleItems.map((item) => (
                       <DraggableItem
                         key={item.id}
                         item={item}
