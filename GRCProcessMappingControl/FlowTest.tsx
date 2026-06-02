@@ -13,7 +13,16 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
-import { Snackbar, Alert } from "@mui/material";
+import {
+  Snackbar,
+  Alert,
+  TextField,
+  InputAdornment,
+  IconButton,
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ResetIcon from "./ResetIcon";
 
 import ProcessNode from "./ProcessNode";
@@ -323,6 +332,10 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
   const [panelOpen, setPanelOpen] = useState(false);
   const [panelFilter, setPanelFilter] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
+  const [flowSearchQuery, setFlowSearchQuery] = useState("");
+  const [flowSearchResultIds, setFlowSearchResultIds] = useState([]);
+  const [flowSearchIndex, setFlowSearchIndex] = useState(0);
+  const previousFlowSearchQueryRef = useRef("");
 
   const showError = useCallback((msg) => setErrorMsg(msg), []);
 
@@ -1055,6 +1068,88 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
   );
 
   const reactFlowInstance = useReactFlow();
+
+  const focusNodeInFlow = useCallback((node) => {
+    if (!node) return;
+    reactFlowInstance.setCenter(
+      node.position.x + 200 + offsetX,
+      node.position.y + 125 + offsetY,
+      { zoom: zoom }
+    );
+  }, [reactFlowInstance, offsetX, offsetY, zoom]);
+
+  const focusSearchNodeInCenter = useCallback((node) => {
+    if (!node) return;
+    const nodeWidth = node.measured?.width || node.width || 400;
+    const nodeHeight = node.measured?.height || node.height || 250;
+
+    reactFlowInstance.setCenter(
+      node.position.x + (nodeWidth / 2),
+      node.position.y + (nodeHeight / 2),
+      { zoom: zoom }
+    );
+  }, [reactFlowInstance, zoom]);
+
+  const getFlowSearchMatches = useCallback((keyword) => {
+    const searchableNodes = (nodes || []).filter(
+      (n) => n.type === "riskNode" || n.type === "controlNode"
+    );
+
+    return searchableNodes.filter((n) => {
+      const label = String(n.data?.title || n.data?.name || "").toLowerCase();
+      return label.includes(keyword);
+    });
+  }, [nodes]);
+
+  useEffect(() => {
+    const keyword = String(flowSearchQuery || "").trim().toLowerCase();
+    const previousKeyword = previousFlowSearchQueryRef.current;
+    previousFlowSearchQueryRef.current = keyword;
+
+    if (!keyword) {
+      setFlowSearchResultIds([]);
+      setFlowSearchIndex(0);
+      return;
+    }
+
+    const matches = getFlowSearchMatches(keyword);
+
+    if (matches.length === 0) {
+      setFlowSearchResultIds([]);
+      setFlowSearchIndex(0);
+      return;
+    }
+
+    setFlowSearchResultIds(matches.map((n) => n.id));
+    const nextIndex = previousKeyword === keyword
+      ? Math.min(flowSearchIndex, matches.length - 1)
+      : 0;
+
+    setFlowSearchIndex(nextIndex);
+    focusSearchNodeInCenter(matches[nextIndex]);
+  }, [flowSearchQuery, flowSearchIndex, getFlowSearchMatches, focusSearchNodeInCenter]);
+
+  const handleStepFlowSearch = useCallback((direction) => {
+    if (!flowSearchResultIds.length) return;
+
+    const nextIndex =
+      direction === "next"
+        ? (flowSearchIndex + 1) % flowSearchResultIds.length
+        : (flowSearchIndex - 1 + flowSearchResultIds.length) % flowSearchResultIds.length;
+
+    const nextNode = (nodes || []).find((n) => n.id === flowSearchResultIds[nextIndex]);
+    if (!nextNode) return;
+
+    setFlowSearchIndex(nextIndex);
+    focusSearchNodeInCenter(nextNode);
+  }, [flowSearchIndex, flowSearchResultIds, nodes, focusSearchNodeInCenter]);
+
+  const handleClearFlowSearch = useCallback(() => {
+    setFlowSearchQuery("");
+    setFlowSearchResultIds([]);
+    setFlowSearchIndex(0);
+  }, []);
+
   const resetflow = useCallback(() => {
     const resetNodes = layoutNodes(nodesWithCallbacks, initialData.edges);
     setNodes(resetNodes);
@@ -1064,12 +1159,10 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
     setTimeout(() => {
       const processNode = resetNodes.find((n) => n.type === "processNode");
       if (processNode) {
-        const nodeX = processNode.position.x;
-        const nodeY = processNode.position.y;
-        reactFlowInstance.setCenter(nodeX + 200 + offsetX, nodeY + 125 + offsetY, { zoom: zoom });
+        focusNodeInFlow(processNode);
       }
     }, 50);
-  }, [nodesWithCallbacks, initialData.edges, reactFlowInstance, offsetX, offsetY, zoom]);
+  }, [nodesWithCallbacks, initialData.edges, focusNodeInFlow]);
 
   const relayout = useCallback(() => {
     setTimeout(() => {
@@ -1081,6 +1174,126 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
 
   return (
     <div style={{ width: "100%", height: "100%", backgroundColor: "#fdfdfd", position: "relative" }}>
+      <div
+        style={{
+          position: "absolute",
+          top: 12,
+          left: 12,
+          zIndex: 20,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          background: "rgba(255,255,255,0.92)",
+          border: "1px solid #dbe5f1",
+          borderRadius: 8,
+          padding: "8px 10px",
+          boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
+        }}
+      >
+        <TextField
+          size="small"
+          value={flowSearchQuery}
+          placeholder="Search risk or control"
+          onChange={(e) => setFlowSearchQuery(e.target.value)}
+          slotProps={{
+            input: {
+              endAdornment: flowSearchQuery ? (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="Clear search"
+                    edge="end"
+                    size="small"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={handleClearFlowSearch}
+                    sx={{ color: "#64748b" }}
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </InputAdornment>
+              ) : null,
+            },
+          }}
+          sx={(theme) => ({
+            width: 220,
+            "& .MuiOutlinedInput-root": {
+              bgcolor: "#f1f5f9",
+              borderRadius: "6px",
+              fontSize: "0.8rem",
+              fontFamily: theme.typography.fontFamily,
+              "& fieldset": { border: "none" },
+              "&:hover fieldset": { border: "none" },
+              "&.Mui-focused fieldset": { border: "none" },
+            },
+            "& input": {
+              py: 1,
+              color: "#334155",
+              fontFamily: theme.typography.fontFamily,
+              "&::placeholder": {
+                color: "#94a3b8",
+                opacity: 1,
+                fontFamily: theme.typography.fontFamily,
+              },
+            },
+          })}
+        />
+
+        <IconButton
+          aria-label="Previous search result"
+          onClick={() => handleStepFlowSearch("prev")}
+          disabled={flowSearchResultIds.length === 0}
+          size="small"
+          sx={{
+            width: 30,
+            height: 30,
+            border: "1px solid #cfd8e3",
+            borderRadius: "6px",
+            backgroundColor: flowSearchResultIds.length === 0 ? "#f3f6fa" : "#fff",
+            color: "#4b5c6b",
+            cursor: flowSearchResultIds.length === 0 ? "default" : "pointer",
+            "&:hover": {
+              backgroundColor: flowSearchResultIds.length === 0 ? "#f3f6fa" : "#f8fafc",
+            },
+          }}
+        >
+          <ChevronLeftIcon fontSize="small" />
+        </IconButton>
+
+        <IconButton
+          aria-label="Next search result"
+          onClick={() => handleStepFlowSearch("next")}
+          disabled={flowSearchResultIds.length === 0}
+          size="small"
+          sx={{
+            width: 30,
+            height: 30,
+            border: "1px solid #cfd8e3",
+            borderRadius: "6px",
+            backgroundColor: flowSearchResultIds.length === 0 ? "#f3f6fa" : "#fff",
+            color: "#4b5c6b",
+            cursor: flowSearchResultIds.length === 0 ? "default" : "pointer",
+            "&:hover": {
+              backgroundColor: flowSearchResultIds.length === 0 ? "#f3f6fa" : "#f8fafc",
+            },
+          }}
+        >
+          <ChevronRightIcon fontSize="small" />
+        </IconButton>
+
+        <div
+          style={{
+            minWidth: 52,
+            textAlign: "center",
+            fontSize: "0.78rem",
+            color: "#4b5c6b",
+            fontWeight: 600,
+          }}
+        >
+          {flowSearchResultIds.length > 0
+            ? `${flowSearchIndex + 1}/${flowSearchResultIds.length}`
+            : "0/0"}
+        </div>
+      </div>
+
       <ReactFlow
         nodesDraggable={mode === 'edit'}
         nodes={nodes}
