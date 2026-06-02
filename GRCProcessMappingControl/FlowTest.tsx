@@ -331,73 +331,37 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
   const setEdgesRef = useRef(null);
   const edgesRef = useRef([]);
   const nodesRef = useRef([]);
+  const hasInitialCenterRef = useRef(false);
   const kanbanRef = useRef(null);
   const handleDeleteNodeRef = useRef(null);
   const handleEditNodeRef = useRef(null);
 
-  const ROW_GAP = 280;
-
-  const positionNewNode = useCallback((newNodeId) => {
+  const positionNewNode = useCallback((_newNodeId) => {
     setTimeout(() => {
       setNodesRef.current((prevNodes) => {
-        const newNode = prevNodes.find((n) => n.id === newNodeId);
-        if (!newNode) return prevNodes;
+        const relayouted = layoutNodes(prevNodes, edgesRef.current);
 
-        const currentEdges = edgesRef.current;
-        let parentId = null;
-        let isLeftSide = false;
+        // Keep the current root anchor stable so viewport doesn't appear to reset
+        // when subtree size changes after adding a node.
+        const prevRoot = prevNodes.find((n) => n.type === "processNode");
+        if (!prevRoot) return relayouted;
 
-        const incomingEdge = currentEdges.find((e) => e.target === newNodeId);
-        const outgoingToRoot = currentEdges.find((e) => e.source === newNodeId);
+        const nextRoot =
+          relayouted.find((n) => n.id === prevRoot.id) ||
+          relayouted.find((n) => n.type === "processNode");
+        if (!nextRoot) return relayouted;
 
-        if (incomingEdge) {
-          parentId = incomingEdge.source;
-        } else if (outgoingToRoot) {
-          parentId = outgoingToRoot.target;
-          isLeftSide = true;
-        }
+        const dx = prevRoot.position.x - nextRoot.position.x;
+        const dy = prevRoot.position.y - nextRoot.position.y;
+        if (dx === 0 && dy === 0) return relayouted;
 
-        if (!parentId) return prevNodes;
-
-        const parentNode = prevNodes.find((n) => n.id === parentId);
-        if (!parentNode) return prevNodes;
-
-        let siblings;
-        if (isLeftSide) {
-          const siblingIds = currentEdges
-            .filter((e) => e.target === parentId && e.source !== newNodeId)
-            .map((e) => e.source);
-          siblings = prevNodes.filter((n) => siblingIds.includes(n.id));
-        } else {
-          const siblingIds = currentEdges
-            .filter((e) => e.source === parentId && e.target !== newNodeId)
-            .map((e) => e.target);
-          siblings = prevNodes.filter((n) => siblingIds.includes(n.id));
-
-          const grandchildIds = [];
-          for (const sib of siblings) {
-            const childIds = currentEdges
-              .filter((e) => e.source === sib.id)
-              .map((e) => e.target);
-            grandchildIds.push(...childIds);
-          }
-          const grandchildren = prevNodes.filter((n) => grandchildIds.includes(n.id));
-          siblings = [...siblings, ...grandchildren];
-        }
-
-        let newY;
-        if (siblings.length > 0) {
-          const maxY = Math.max(...siblings.map((s) => s.position.y));
-          newY = maxY + ROW_GAP;
-        } else {
-          newY = parentNode.position.y;
-        }
-
-        const newX = isLeftSide ? -450 : (newNode.type === "riskNode" ? 450 : 900);
-
-        return prevNodes.map((n) =>
-          n.id === newNodeId ? { ...n, position: { x: newX, y: newY } } : n
-        );
+        return relayouted.map((n) => ({
+          ...n,
+          position: {
+            x: n.position.x + dx,
+            y: n.position.y + dy,
+          },
+        }));
       });
     }, 0);
   }, []);
@@ -1000,10 +964,25 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
   }, [mode]);
 
   useEffect(() => {
-    if (nodes.length > 0) {
-      relayout();
-    }
-  }, [nodes.length]);
+    if (hasInitialCenterRef.current) return;
+    if (!nodes || nodes.length === 0) return;
+
+    const processNode = nodes.find((n) => n.type === "processNode");
+    if (!processNode) return;
+
+    const rafId = requestAnimationFrame(() => {
+      const nodeX = processNode.position.x;
+      const nodeY = processNode.position.y;
+      reactFlowInstance.setCenter(
+        nodeX + 200 + offsetX,
+        nodeY + 125 + offsetY,
+        { zoom: zoom }
+      );
+      hasInitialCenterRef.current = true;
+    });
+
+    return () => cancelAnimationFrame(rafId);
+  }, [nodes, reactFlowInstance, offsetX, offsetY, zoom]);
 
   setNodesRef.current = setNodes;
   setEdgesRef.current = (updater) => {
@@ -1104,7 +1083,6 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
     <div style={{ width: "100%", height: "100%", backgroundColor: "#fdfdfd", position: "relative" }}>
       <ReactFlow
         nodesDraggable={mode === 'edit'}
-        key={nodes.map(n => n.id).join('-')}
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
@@ -1116,15 +1094,6 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
         minZoom={0.1}
         maxZoom={4}
         proOptions={{ hideAttribution: true }}
-        onInit={(reactFlowInstance) => {
-          const nodes = reactFlowInstance.getNodes();
-          const processNode = nodes.find(n => n.type === 'processNode');
-          if (processNode) {
-            const nodeX = processNode.position.x;
-            const nodeY = processNode.position.y;
-            reactFlowInstance.setCenter(nodeX + 200 + offsetX, nodeY + 125 + offsetY, { zoom: zoom });
-          }
-        }}
       >
         <Background color="#e0e0e0" />
         <Controls
