@@ -23,6 +23,8 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import SearchIcon from "@mui/icons-material/Search";
+import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
 import ResetIcon from "./ResetIcon";
 
 import ProcessNode from "./ProcessNode";
@@ -335,6 +337,7 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
   const [flowSearchQuery, setFlowSearchQuery] = useState("");
   const [flowSearchResultIds, setFlowSearchResultIds] = useState([]);
   const [flowSearchIndex, setFlowSearchIndex] = useState(0);
+  const [isFlowSearchOpen, setIsFlowSearchOpen] = useState(false);
   const previousFlowSearchQueryRef = useRef("");
 
   const showError = useCallback((msg) => setErrorMsg(msg), []);
@@ -1150,6 +1153,14 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
     setFlowSearchIndex(0);
   }, []);
 
+  const handleOpenFlowSearch = useCallback(() => {
+    setIsFlowSearchOpen(true);
+  }, []);
+
+  const handleHideFlowSearch = useCallback(() => {
+    setIsFlowSearchOpen(false);
+  }, []);
+
   const resetflow = useCallback(() => {
     const resetNodes = layoutNodes(nodesWithCallbacks, initialData.edges);
     setNodes(resetNodes);
@@ -1182,116 +1193,162 @@ function FlowBoard({ processItems, controlItems, riskItems, processDatasetFlat, 
           zIndex: 20,
           display: "flex",
           alignItems: "center",
-          gap: 8,
+          justifyContent: isFlowSearchOpen ? "flex-start" : "center",
+          gap: isFlowSearchOpen ? 6 : 0,
           background: "rgba(255,255,255,0.92)",
           border: "1px solid #dbe5f1",
           borderRadius: 8,
-          padding: "8px 10px",
+          padding: isFlowSearchOpen ? "6px" : "0px",
+          height: 44,
+          minWidth: 44,
           boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
+          overflow: "hidden",
+          whiteSpace: "nowrap",
+          maxWidth: isFlowSearchOpen ? 430 : 44,
+          transition: "max-width 0.22s ease",
         }}
       >
-        <TextField
-          size="small"
-          value={flowSearchQuery}
-          placeholder="Search risk or control"
-          onChange={(e) => setFlowSearchQuery(e.target.value)}
-          slotProps={{
-            input: {
-              endAdornment: flowSearchQuery ? (
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="Clear search"
-                    edge="end"
-                    size="small"
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={handleClearFlowSearch}
-                    sx={{ color: "#64748b" }}
-                  >
-                    <CloseIcon fontSize="small" />
-                  </IconButton>
-                </InputAdornment>
-              ) : null,
-            },
-          }}
-          sx={(theme) => ({
-            width: 220,
-            "& .MuiOutlinedInput-root": {
-              bgcolor: "#f1f5f9",
+        {!isFlowSearchOpen ? (
+          <IconButton
+            aria-label="Open search"
+            onClick={handleOpenFlowSearch}
+            size="small"
+            sx={{
+              width: 32,
+              height: 32,
               borderRadius: "6px",
-              fontSize: "0.8rem",
-              fontFamily: theme.typography.fontFamily,
-              "& fieldset": { border: "none" },
-              "&:hover fieldset": { border: "none" },
-              "&.Mui-focused fieldset": { border: "none" },
-            },
-            "& input": {
-              py: 1,
-              color: "#334155",
-              fontFamily: theme.typography.fontFamily,
-              "&::placeholder": {
-                color: "#94a3b8",
-                opacity: 1,
-                fontFamily: theme.typography.fontFamily,
+              backgroundColor: "#fff",
+              color: "#4b5c6b",
+              "&:hover": {
+                backgroundColor: "#f8fafc",
               },
-            },
-          })}
-        />
+            }}
+          >
+            <SearchIcon fontSize="small" />
+          </IconButton>
+        ) : (
+          <>
+            <TextField
+              size="small"
+              autoFocus
+              value={flowSearchQuery}
+              placeholder="Search risk or control"
+              onChange={(e) => setFlowSearchQuery(e.target.value)}
+              slotProps={{
+                input: {
+                  endAdornment: flowSearchQuery ? (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="Clear search"
+                        edge="end"
+                        size="small"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={handleClearFlowSearch}
+                        sx={{ color: "#64748b" }}
+                      >
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    </InputAdornment>
+                  ) : null,
+                },
+              }}
+              sx={(theme) => ({
+                width: 220,
+                "& .MuiOutlinedInput-root": {
+                  bgcolor: "#f1f5f9",
+                  borderRadius: "6px",
+                  fontSize: "0.8rem",
+                  fontFamily: theme.typography.fontFamily,
+                  "& fieldset": { border: "none" },
+                  "&:hover fieldset": { border: "none" },
+                  "&.Mui-focused fieldset": { border: "none" },
+                },
+                "& input": {
+                  py: 1,
+                  color: "#334155",
+                  fontFamily: theme.typography.fontFamily,
+                  "&::placeholder": {
+                    color: "#94a3b8",
+                    opacity: 1,
+                    fontFamily: theme.typography.fontFamily,
+                  },
+                },
+              })}
+            />
 
-        <IconButton
-          aria-label="Previous search result"
-          onClick={() => handleStepFlowSearch("prev")}
-          disabled={flowSearchResultIds.length === 0}
-          size="small"
-          sx={{
-            width: 30,
-            height: 30,
-            border: "1px solid #cfd8e3",
-            borderRadius: "6px",
-            backgroundColor: flowSearchResultIds.length === 0 ? "#f3f6fa" : "#fff",
-            color: "#4b5c6b",
-            cursor: flowSearchResultIds.length === 0 ? "default" : "pointer",
-            "&:hover": {
-              backgroundColor: flowSearchResultIds.length === 0 ? "#f3f6fa" : "#f8fafc",
-            },
-          }}
-        >
-          <ChevronLeftIcon fontSize="small" />
-        </IconButton>
+            <IconButton
+              aria-label="Previous search result"
+              onClick={() => handleStepFlowSearch("prev")}
+              disabled={flowSearchResultIds.length === 0}
+              size="small"
+              sx={{
+                width: 30,
+                height: 30,
+                borderRadius: "6px",
+                backgroundColor: flowSearchResultIds.length === 0 ? "#f3f6fa" : "#fff",
+                color: "#4b5c6b",
+                cursor: flowSearchResultIds.length === 0 ? "default" : "pointer",
+                "&:hover": {
+                  backgroundColor: flowSearchResultIds.length === 0 ? "#f3f6fa" : "#f8fafc",
+                },
+              }}
+            >
+              <ChevronLeftIcon fontSize="small" />
+            </IconButton>
 
-        <IconButton
-          aria-label="Next search result"
-          onClick={() => handleStepFlowSearch("next")}
-          disabled={flowSearchResultIds.length === 0}
-          size="small"
-          sx={{
-            width: 30,
-            height: 30,
-            border: "1px solid #cfd8e3",
-            borderRadius: "6px",
-            backgroundColor: flowSearchResultIds.length === 0 ? "#f3f6fa" : "#fff",
-            color: "#4b5c6b",
-            cursor: flowSearchResultIds.length === 0 ? "default" : "pointer",
-            "&:hover": {
-              backgroundColor: flowSearchResultIds.length === 0 ? "#f3f6fa" : "#f8fafc",
-            },
-          }}
-        >
-          <ChevronRightIcon fontSize="small" />
-        </IconButton>
+            <IconButton
+              aria-label="Next search result"
+              onClick={() => handleStepFlowSearch("next")}
+              disabled={flowSearchResultIds.length === 0}
+              size="small"
+              sx={{
+                width: 30,
+                height: 30,
+                borderRadius: "6px",
+                backgroundColor: flowSearchResultIds.length === 0 ? "#f3f6fa" : "#fff",
+                color: "#4b5c6b",
+                cursor: flowSearchResultIds.length === 0 ? "default" : "pointer",
+                "&:hover": {
+                  backgroundColor: flowSearchResultIds.length === 0 ? "#f3f6fa" : "#f8fafc",
+                },
+              }}
+            >
+              <ChevronRightIcon fontSize="small" />
+            </IconButton>
 
-        <div
-          style={{
-            minWidth: 52,
-            textAlign: "center",
-            fontSize: "0.78rem",
-            color: "#4b5c6b",
-            fontWeight: 600,
-          }}
-        >
-          {flowSearchResultIds.length > 0
-            ? `${flowSearchIndex + 1}/${flowSearchResultIds.length}`
-            : "0/0"}
-        </div>
+            <div
+              style={{
+                minWidth: 52,
+                textAlign: "center",
+                fontSize: "0.78rem",
+                color: "#4b5c6b",
+                fontWeight: 600,
+              }}
+            >
+              {flowSearchResultIds.length > 0
+                ? `${flowSearchIndex + 1}/${flowSearchResultIds.length}`
+                : "0/0"}
+            </div>
+
+            <IconButton
+              aria-label="Hide search"
+              onClick={handleHideFlowSearch}
+              size="small"
+              sx={{
+                width: 30,
+                height: 30,
+                borderRadius: "6px",
+                backgroundColor: "#fff",
+                color: "#4b5c6b",
+                "&:hover": {
+                  backgroundColor: "#f8fafc",
+                },
+              }}
+            >
+              <KeyboardDoubleArrowLeftIcon fontSize="small" />
+            </IconButton>
+          </>
+        )}
       </div>
 
       <ReactFlow
