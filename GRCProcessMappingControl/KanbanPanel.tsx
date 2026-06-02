@@ -165,34 +165,30 @@ function DraggableItem({ item, nodeType, color, onDelete }) {
         {nodeType === "controlNode" && (
           <Box
             sx={(theme) => ({
-              marginTop: "8px",
+              marginTop: "6px",
               display: "grid",
-              gridTemplateColumns: "1fr auto 1fr auto auto",
+              gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr) max-content",
               alignItems: "center",
-              columnGap: "10px",
+              columnGap: "6px",
               fontSize: "0.6rem",
               color: "#7d8fa5",
               fontFamily: theme.typography.fontFamily,
             })}
           >
-            <Box sx={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <Box sx={{ minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               CATEGORY: {item.category || "N/A"}
             </Box>
 
-            <Box sx={{ color: "#7d8fa5", userSelect: "none" }}>-</Box>
-
-            <Box sx={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <Box sx={{ minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               OWNER: {item.owner || "N/A"}
             </Box>
-
-            <Box sx={{ color: "#7d8fa5", userSelect: "none" }}>-</Box>
 
             <Box
               sx={(theme) => ({
                 backgroundColor: statusText?.toLowerCase() === "retired" ? "#ffe2e2" : "#e6f9e6",
                 color: statusText?.toLowerCase() === "retired" ? "#9f0712" : "#26a251",
-                px: 0.75,
-                py: 0.15,
+                px: 0.6,
+                py: 0.1,
                 borderRadius: "3px",
                 fontWeight: 700,
                 fontSize: "0.5rem",

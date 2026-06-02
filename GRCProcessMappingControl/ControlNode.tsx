@@ -85,69 +85,67 @@ export default function ControlNode(props) {
             </Typography>
 
             <Box
-              sx={{
+              sx={(theme) => ({
+                mt: 1,
+                mb: 1.5,
                 display: "flex",
-                flexWrap: "wrap",
-                gap: 0.5,
-              }}
-            >
-              <Box>
-                <Typography
-                  variant="body2"
-                  sx={(theme) => ({
-                    color: "#555",
-                    fontSize: "0.8rem",
-                    fontFamily:
-                      theme.typography.fontFamily,
-                  })}
-                >
-                  CATEGORY: {data.category} -
-                </Typography>
-              </Box>
-
-              <Box>
-                <Typography
-                  variant="body2"
-                  sx={(theme) => ({
-                    color: "#555",
-                    mb: 2,
-                    fontSize: "0.8rem",
-                    fontFamily:
-                      theme.typography.fontFamily,
-                  })}
-                >
-                  OWNER: {data.owner} -
-                </Typography>
-              </Box>
-            </Box>
-
-            <Box
-              sx={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: 0.5,
-              }}
+                flexDirection: "column",
+                rowGap: "6px",
+                color: "#555",
+                fontSize: "0.78rem",
+                fontFamily: theme.typography.fontFamily,
+              })}
             >
               <Box
-                sx={(theme) => ({
-                  backgroundColor:
-                    data.status?.toLowerCase() === "retired"
-                      ? "#ffe2e2"
-                      : "#dcfce7",
-
-                  color:
-                    data.status?.toLowerCase() === "retired"
-                      ? "#9f0712"
-                      : "#016630",
-
-                  fontSize: "0.75rem",
-                  fontWeight: 600,
-                  padding: "2px 8px",
-                  borderRadius: "4px",
-                  fontFamily: theme.typography.fontFamily,
-                })}
+                sx={{
+                  minWidth: 0,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
               >
-                {data.status}
+                CATEGORY: {data.category || "N/A"}
+              </Box>
+
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr auto",
+                  alignItems: "center",
+                  columnGap: "8px",
+                }}
+              >
+                <Box
+                  sx={{
+                    minWidth: 0,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  OWNER: {data.owner || "N/A"}
+                </Box>
+
+                <Box
+                  sx={(theme) => ({
+                    backgroundColor:
+                      data.status?.toLowerCase() === "retired"
+                        ? "#ffe2e2"
+                        : "#dcfce7",
+                    color:
+                      data.status?.toLowerCase() === "retired"
+                        ? "#9f0712"
+                        : "#016630",
+                    fontSize: "0.75rem",
+                    fontWeight: 600,
+                    padding: "2px 8px",
+                    borderRadius: "4px",
+                    whiteSpace: "nowrap",
+                    fontFamily: theme.typography.fontFamily,
+                  })}
+                >
+                  {data.status || "N/A"}
+                </Box>
               </Box>
             </Box>
           </Box>
